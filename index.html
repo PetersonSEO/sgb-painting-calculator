@@ -1,0 +1,1441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SGB Custom Painting - Estimate Calculator</title>
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    /* ===== BRAND COLORS ===== */
+    :root {
+      --navy:   #052D5C;
+      --blue:   #2D71AE;
+      --red:    #D91D23;
+      --light:  #EEF4FB;
+      --white:  #ffffff;
+      --gray:   #f5f7fa;
+      --border: #d0dce8;
+      --text:   #1a1a2e;
+      --muted:  #5a6a7e;
+      --green:  #1a7a4a;
+      --shadow: 0 4px 24px rgba(5,45,92,0.10);
+    }
+
+    /* ===== HEADER ===== */
+    .calc-header {
+      background: var(--navy);
+      padding: 22px 28px 18px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      border-radius: 14px 14px 0 0;
+    }
+    .calc-header-logo {
+      height: 60px;
+      width: auto;
+      flex-shrink: 0;
+    }
+    .calc-header-text h1 {
+      color: var(--white);
+      font-size: 1.45rem;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    .calc-header-text p {
+      color: rgba(255,255,255,0.78);
+      font-size: 0.88rem;
+      margin-top: 4px;
+    }
+
+    /* ===== WRAPPER ===== */
+    .calc-wrapper {
+      max-width: 820px;
+      margin: 0 auto;
+      background: var(--white);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    /* ===== PROGRESS BAR ===== */
+    .progress-bar-wrap {
+      background: var(--navy);
+      padding: 0 28px 18px;
+    }
+    .progress-steps {
+      display: flex;
+      gap: 0;
+    }
+    .progress-step {
+      flex: 1;
+      text-align: center;
+      position: relative;
+    }
+    .progress-step::after {
+      content: '';
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      width: 100%;
+      height: 3px;
+      background: rgba(255,255,255,0.25);
+      z-index: 0;
+    }
+    .progress-step:last-child::after { display: none; }
+    .step-dot {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.25);
+      border: 2px solid rgba(255,255,255,0.4);
+      color: rgba(255,255,255,0.6);
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+      transition: all 0.3s;
+    }
+    .progress-step.active .step-dot,
+    .progress-step.done .step-dot {
+      background: var(--red);
+      border-color: var(--red);
+      color: var(--white);
+    }
+    .step-label {
+      display: block;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.7rem;
+      margin-top: 5px;
+      font-weight: 500;
+    }
+    .progress-step.active .step-label,
+    .progress-step.done .step-label {
+      color: rgba(255,255,255,0.95);
+    }
+
+    /* ===== SECTION PANELS ===== */
+    .calc-section {
+      display: none;
+      padding: 28px 28px 20px;
+      animation: fadeIn 0.3s ease;
+    }
+    .calc-section.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .section-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+    .section-subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 22px;
+    }
+
+    /* ===== PROJECT TYPE CARDS ===== */
+    .type-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .type-card {
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 20px 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--white);
+    }
+    .type-card:hover { border-color: var(--blue); background: var(--light); }
+    .type-card.selected { border-color: var(--navy); background: var(--light); box-shadow: 0 0 0 3px rgba(5,45,92,0.12); }
+    .type-card .card-icon { font-size: 2.2rem; margin-bottom: 10px; }
+    .type-card .card-title { font-weight: 700; color: var(--navy); font-size: 0.95rem; }
+    .type-card .card-desc { color: var(--muted); font-size: 0.78rem; margin-top: 5px; line-height: 1.4; }
+
+    /* ===== ROOM SELECTOR ===== */
+    .room-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .room-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--gray);
+      border-radius: 8px;
+      padding: 10px 14px;
+      border: 1px solid var(--border);
+    }
+    .room-row-label { font-size: 0.88rem; font-weight: 600; color: var(--navy); }
+    .qty-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .qty-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 2px solid var(--blue);
+      background: var(--white);
+      color: var(--blue);
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      line-height: 1;
+    }
+    .qty-btn:hover { background: var(--blue); color: var(--white); }
+    .qty-val {
+      min-width: 22px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--navy);
+    }
+
+    /* ===== ADD-ONS ===== */
+    .addons-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--navy);
+      margin: 18px 0 10px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .addon-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .addon-check {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      background: var(--gray);
+      border-radius: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .addon-check:hover { border-color: var(--blue); }
+    .addon-check input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--navy);
+      flex-shrink: 0;
+      margin-top: 1px;
+      cursor: pointer;
+    }
+    .addon-check-label { font-size: 0.85rem; color: var(--text); line-height: 1.35; }
+    .addon-check-label strong { display: block; font-size: 0.82rem; color: var(--navy); }
+    .addon-check-label span { color: var(--muted); font-size: 0.76rem; }
+
+    /* ===== HOME SIZE SELECTOR ===== */
+    .size-cards {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .size-card {
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--white);
+    }
+    .size-card:hover { border-color: var(--blue); background: var(--light); }
+    .size-card.selected { border-color: var(--navy); background: var(--light); box-shadow: 0 0 0 3px rgba(5,45,92,0.12); }
+    .size-card .size-title { font-weight: 700; color: var(--navy); font-size: 0.95rem; }
+    .size-card .size-range { color: var(--muted); font-size: 0.8rem; margin-top: 3px; }
+
+    /* ===== PAINT TIER ===== */
+    .tier-cards {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .tier-card {
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 16px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--white);
+    }
+    .tier-card:hover { border-color: var(--blue); background: var(--light); }
+    .tier-card.selected { border-color: var(--navy); background: var(--light); box-shadow: 0 0 0 3px rgba(5,45,92,0.12); }
+    .tier-badge {
+      display: inline-block;
+      padding: 3px 12px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .tier-badge.good { background: #e8f5e9; color: #2e7d32; }
+    .tier-badge.better { background: #e3f2fd; color: #1565c0; }
+    .tier-badge.best { background: #fce4ec; color: #880e4f; }
+    .tier-card .tier-name { font-weight: 700; color: var(--navy); font-size: 1rem; margin-bottom: 5px; }
+    .tier-card .tier-brand { color: var(--muted); font-size: 0.78rem; line-height: 1.4; }
+
+    /* ===== CABINET INPUTS ===== */
+    .cabinet-inputs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .cab-input-group {
+      background: var(--gray);
+      border-radius: 10px;
+      padding: 16px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+    .cab-input-group label {
+      display: block;
+      font-weight: 700;
+      color: var(--navy);
+      font-size: 0.9rem;
+      margin-bottom: 10px;
+    }
+    .cab-input-group .cab-icon { font-size: 1.8rem; margin-bottom: 6px; }
+    .cab-qty-control {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+    }
+    .cab-qty-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 2px solid var(--blue);
+      background: var(--white);
+      color: var(--blue);
+      font-size: 1.3rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+    .cab-qty-btn:hover { background: var(--blue); color: var(--white); }
+    .cab-qty-val {
+      min-width: 36px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 1.4rem;
+      color: var(--navy);
+    }
+
+    /* ===== LEAD FORM ===== */
+    .lead-form-intro {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+      border-radius: 10px;
+      padding: 18px 20px;
+      margin-bottom: 22px;
+      color: var(--white);
+    }
+    .lead-form-intro h3 { font-size: 1.05rem; margin-bottom: 5px; }
+    .lead-form-intro p { font-size: 0.85rem; opacity: 0.88; line-height: 1.5; }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--navy);
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      padding: 10px 12px;
+      font-size: 0.9rem;
+      color: var(--text);
+      background: var(--white);
+      transition: border-color 0.2s;
+      font-family: inherit;
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(45,113,174,0.12);
+    }
+    .form-group textarea { resize: vertical; min-height: 70px; }
+
+    /* ===== ESTIMATE RESULT ===== */
+    .estimate-result {
+      background: linear-gradient(135deg, var(--navy) 0%, #0a4a8c 100%);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 20px;
+      text-align: center;
+      color: var(--white);
+    }
+    .estimate-result h3 { font-size: 1rem; opacity: 0.85; margin-bottom: 8px; }
+    .estimate-range {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--white);
+      margin-bottom: 6px;
+    }
+    .estimate-note { font-size: 0.82rem; opacity: 0.75; }
+
+    .estimate-breakdown {
+      background: var(--gray);
+      border-radius: 10px;
+      padding: 18px;
+      margin-bottom: 18px;
+      border: 1px solid var(--border);
+    }
+    .breakdown-title {
+      font-weight: 700;
+      color: var(--navy);
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .breakdown-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 0.88rem;
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    .breakdown-item:last-child { border-bottom: none; }
+    .breakdown-item .item-name { color: var(--text); }
+    .breakdown-item .item-price { font-weight: 700; color: var(--navy); }
+    .breakdown-total {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0 0;
+      margin-top: 6px;
+      border-top: 2px solid var(--navy);
+      font-weight: 800;
+      font-size: 1rem;
+      color: var(--navy);
+    }
+
+    .success-box {
+      background: #e8f5e9;
+      border: 1px solid #a5d6a7;
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin-bottom: 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .success-box .check-icon { font-size: 1.4rem; flex-shrink: 0; }
+    .success-box p { font-size: 0.87rem; color: #1b5e20; line-height: 1.5; }
+
+    /* ===== NAVIGATION BUTTONS ===== */
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 28px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--white);
+    }
+    .btn {
+      padding: 11px 26px;
+      border-radius: 7px;
+      font-size: 0.92rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .btn-back {
+      background: var(--white);
+      color: var(--navy);
+      border: 2px solid var(--border);
+    }
+    .btn-back:hover { border-color: var(--navy); background: var(--light); }
+    .btn-next {
+      background: var(--navy);
+      color: var(--white);
+    }
+    .btn-next:hover { background: #073d7a; }
+    .btn-submit {
+      background: var(--red);
+      color: var(--white);
+      padding: 13px 32px;
+      font-size: 1rem;
+    }
+    .btn-submit:hover { background: #b01820; }
+    .btn-restart {
+      background: var(--blue);
+      color: var(--white);
+    }
+    .btn-restart:hover { background: #1a5a9a; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* ===== FOOTER ===== */
+    .calc-footer {
+      text-align: center;
+      padding: 14px 20px 18px;
+      background: var(--gray);
+      border-top: 1px solid var(--border);
+    }
+    .calc-footer .disclaimer {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-bottom: 5px;
+      font-style: italic;
+    }
+    .calc-footer .built-by {
+      font-size: 0.76rem;
+      color: var(--muted);
+    }
+    .calc-footer .built-by a {
+      color: var(--blue);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .calc-footer .built-by a:hover { text-decoration: underline; }
+
+    /* ===== LOADING SPINNER ===== */
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(255,255,255,0.4);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 600px) {
+      .calc-header { padding: 16px 16px 14px; gap: 12px; }
+      .calc-header-logo { height: 44px; }
+      .calc-header-text h1 { font-size: 1.1rem; }
+      .calc-section { padding: 20px 16px 16px; }
+      .type-cards { grid-template-columns: 1fr; }
+      .room-grid { grid-template-columns: 1fr; }
+      .addon-grid { grid-template-columns: 1fr; }
+      .size-cards { grid-template-columns: 1fr; }
+      .tier-cards { grid-template-columns: 1fr; }
+      .cabinet-inputs { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .nav-buttons { padding: 14px 16px 16px; }
+      .progress-bar-wrap { padding: 0 16px 14px; }
+      .step-label { font-size: 0.62rem; }
+    }
+
+    /* ===== VALIDATION ===== */
+    .field-error {
+      border-color: var(--red) !important;
+    }
+    .error-msg {
+      color: var(--red);
+      font-size: 0.76rem;
+      margin-top: 3px;
+    }
+    .info-banner {
+      background: var(--light);
+      border: 1px solid #b3d0ee;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 0.83rem;
+      color: var(--navy);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="calc-wrapper">
+
+  <!-- HEADER -->
+  <div class="calc-header">
+    <img class="calc-header-logo"
+      src="https://lirp.cdn-website.com/f5ee2741/dms3rep/multi/opt/sgb+custom+painting+logo-1920w.png"
+      onerror="this.style.display='none'"
+      alt="SGB Custom Painting" />
+    <div class="calc-header-text">
+      <h1>Painting Cost Estimator</h1>
+      <p>Get an instant ballpark estimate for your painting project in seconds.</p>
+    </div>
+  </div>
+
+  <!-- PROGRESS BAR -->
+  <div class="progress-bar-wrap">
+    <div class="progress-steps">
+      <div class="progress-step active" id="step-dot-1">
+        <div class="step-dot">1</div>
+        <span class="step-label">Project</span>
+      </div>
+      <div class="progress-step" id="step-dot-2">
+        <div class="step-dot">2</div>
+        <span class="step-label">Details</span>
+      </div>
+      <div class="progress-step" id="step-dot-3">
+        <div class="step-dot">3</div>
+        <span class="step-label">Paint Tier</span>
+      </div>
+      <div class="progress-step" id="step-dot-4">
+        <div class="step-dot">4</div>
+        <span class="step-label">Your Info</span>
+      </div>
+      <div class="progress-step" id="step-dot-5">
+        <div class="step-dot">5</div>
+        <span class="step-label">Estimate</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1: PROJECT TYPE -->
+  <div class="calc-section active" id="section-1">
+    <div class="section-title">What type of project are you planning?</div>
+    <div class="section-subtitle">Select the service that best describes your project. You can always call us to discuss multiple areas.</div>
+    <div class="type-cards">
+      <div class="type-card" data-type="interior" onclick="selectType(this)">
+        <div class="card-icon">🏠</div>
+        <div class="card-title">Interior Painting</div>
+        <div class="card-desc">Walls, ceilings, trim, doors and more inside your home</div>
+      </div>
+      <div class="type-card" data-type="exterior" onclick="selectType(this)">
+        <div class="card-icon">🏡</div>
+        <div class="card-title">Exterior Painting</div>
+        <div class="card-desc">Siding, trim, doors, windows and outdoor surfaces</div>
+      </div>
+      <div class="type-card" data-type="cabinet" onclick="selectType(this)">
+        <div class="card-icon">🚪</div>
+        <div class="card-title">Cabinet Painting</div>
+        <div class="card-desc">Kitchen, bathroom or laundry cabinet doors and drawers</div>
+      </div>
+    </div>
+    <div id="type-error" class="error-msg" style="display:none;">Please select a project type to continue.</div>
+  </div>
+
+  <!-- STEP 2A: INTERIOR DETAILS -->
+  <div class="calc-section" id="section-2-interior">
+    <div class="section-title">Which rooms need painting?</div>
+    <div class="section-subtitle">Add the number of each room type. Walls, ceilings, trim and doors are included in each room price.</div>
+    <div class="room-grid">
+      <div class="room-row">
+        <span class="room-row-label">Small Bedroom</span>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty('small-bed',-1)">&#8722;</button>
+          <span class="qty-val" id="qty-small-bed">0</span>
+          <button class="qty-btn" onclick="changeQty('small-bed',1)">&#43;</button>
+        </div>
+      </div>
+      <div class="room-row">
+        <span class="room-row-label">Standard Bedroom</span>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty('std-bed',-1)">&#8722;</button>
+          <span class="qty-val" id="qty-std-bed">0</span>
+          <button class="qty-btn" onclick="changeQty('std-bed',1)">&#43;</button>
+        </div>
+      </div>
+      <div class="room-row">
+        <span class="room-row-label">Master Bedroom</span>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty('master-bed',-1)">&#8722;</button>
+          <span class="qty-val" id="qty-master-bed">0</span>
+          <button class="qty-btn" onclick="changeQty('master-bed',1)">&#43;</button>
+        </div>
+      </div>
+      <div class="room-row">
+        <span class="room-row-label">Living Room</span>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty('living',-1)">&#8722;</button>
+          <span class="qty-val" id="qty-living">0</span>
+          <button class="qty-btn" onclick="changeQty('living',1)">&#43;</button>
+        </div>
+      </div>
+      <div class="room-row">
+        <span class="room-row-label">Dining Room</span>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty('dining',-1)">&#8722;</button>
+          <span class="qty-val" id="qty-dining">0</span>
+          <button class="qty-btn" onclick="changeQty('dining',1)">&#43;</button>
+        </div>
+      </div>
+      <div class="room-row">
+        <span class="room-row-label">Kitchen</span>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty('kitchen',-1)">&#8722;</button>
+          <span class="qty-val" id="qty-kitchen">0</span>
+          <button class="qty-btn" onclick="changeQty('kitchen',1)">&#43;</button>
+        </div>
+      </div>
+      <div class="room-row">
+        <span class="room-row-label">Small Bathroom</span>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty('bath-sm',-1)">&#8722;</button>
+          <span class="qty-val" id="qty-bath-sm">0</span>
+          <button class="qty-btn" onclick="changeQty('bath-sm',1)">&#43;</button>
+        </div>
+      </div>
+      <div class="room-row">
+        <span class="room-row-label">Master Bathroom</span>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty('bath-master',-1)">&#8722;</button>
+          <span class="qty-val" id="qty-bath-master">0</span>
+          <button class="qty-btn" onclick="changeQty('bath-master',1)">&#43;</button>
+        </div>
+      </div>
+      <div class="room-row">
+        <span class="room-row-label">Hallway / Entry</span>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty('hallway',-1)">&#8722;</button>
+          <span class="qty-val" id="qty-hallway">0</span>
+          <button class="qty-btn" onclick="changeQty('hallway',1)">&#43;</button>
+        </div>
+      </div>
+      <div class="room-row">
+        <span class="room-row-label">Office / Den</span>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty('office',-1)">&#8722;</button>
+          <span class="qty-val" id="qty-office">0</span>
+          <button class="qty-btn" onclick="changeQty('office',1)">&#43;</button>
+        </div>
+      </div>
+      <div class="room-row">
+        <span class="room-row-label">Stairwell / Landing</span>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty('stair',-1)">&#8722;</button>
+          <span class="qty-val" id="qty-stair">0</span>
+          <button class="qty-btn" onclick="changeQty('stair',1)">&#43;</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="addons-title">Prep Work Needed? (Optional Add-Ons)</div>
+    <div class="addon-grid">
+      <label class="addon-check">
+        <input type="checkbox" id="addon-wallpaper" />
+        <div class="addon-check-label">
+          <strong>Wallpaper Removal</strong>
+          <span>Remove existing wallpaper before painting</span>
+        </div>
+      </label>
+      <label class="addon-check">
+        <input type="checkbox" id="addon-popcorn" />
+        <div class="addon-check-label">
+          <strong>Popcorn Ceiling Removal</strong>
+          <span>Scrape and smooth textured ceilings</span>
+        </div>
+      </label>
+      <label class="addon-check">
+        <input type="checkbox" id="addon-repairs-minor" />
+        <div class="addon-check-label">
+          <strong>Minor Drywall Repairs</strong>
+          <span>Small holes, nail pops, hairline cracks</span>
+        </div>
+      </label>
+      <label class="addon-check">
+        <input type="checkbox" id="addon-repairs-moderate" />
+        <div class="addon-check-label">
+          <strong>Moderate Drywall Repairs</strong>
+          <span>Larger patches, water damage areas</span>
+        </div>
+      </label>
+    </div>
+    <div id="interior-room-error" class="error-msg" style="display:none;">Please add at least one room to continue.</div>
+  </div>
+
+  <!-- STEP 2B: EXTERIOR DETAILS -->
+  <div class="calc-section" id="section-2-exterior">
+    <div class="section-title">How large is your home?</div>
+    <div class="section-subtitle">Select the option that best matches your home's square footage.</div>
+    <div class="size-cards">
+      <div class="size-card" data-size="small" onclick="selectSize(this)">
+        <div class="size-title">Small Home</div>
+        <div class="size-range">Under 1,200 sq ft</div>
+      </div>
+      <div class="size-card" data-size="medium" onclick="selectSize(this)">
+        <div class="size-title">Medium Home</div>
+        <div class="size-range">1,200 to 1,800 sq ft</div>
+      </div>
+      <div class="size-card" data-size="large" onclick="selectSize(this)">
+        <div class="size-title">Large Home</div>
+        <div class="size-range">1,800 to 2,500 sq ft</div>
+      </div>
+      <div class="size-card" data-size="xlarge" onclick="selectSize(this)">
+        <div class="size-title">Extra Large Home</div>
+        <div class="size-range">2,500 sq ft and above</div>
+      </div>
+    </div>
+
+    <div class="addons-title">Exterior Prep and Add-Ons (Optional)</div>
+    <div class="addon-grid">
+      <label class="addon-check">
+        <input type="checkbox" id="addon-powerwash" checked />
+        <div class="addon-check-label">
+          <strong>Power Washing</strong>
+          <span>Recommended before all exterior painting</span>
+        </div>
+      </label>
+      <label class="addon-check">
+        <input type="checkbox" id="addon-ext-repairs" />
+        <div class="addon-check-label">
+          <strong>Wood Repairs / Rot Replacement</strong>
+          <span>Fascia, siding boards, trim boards</span>
+        </div>
+      </label>
+      <label class="addon-check">
+        <input type="checkbox" id="addon-deck" />
+        <div class="addon-check-label">
+          <strong>Deck or Fence Painting</strong>
+          <span>Stain or paint exterior deck and fencing</span>
+        </div>
+      </label>
+      <label class="addon-check">
+        <input type="checkbox" id="addon-trim-accent" />
+        <div class="addon-check-label">
+          <strong>Accent Trim Color</strong>
+          <span>Different color for trim vs. body of home</span>
+        </div>
+      </label>
+    </div>
+    <div id="exterior-size-error" class="error-msg" style="display:none;">Please select a home size to continue.</div>
+  </div>
+
+  <!-- STEP 2C: CABINET DETAILS -->
+  <div class="calc-section" id="section-2-cabinet">
+    <div class="section-title">Tell us about your cabinets</div>
+    <div class="section-subtitle">Count the total number of cabinet doors and drawer faces you want painted. Not sure? A typical kitchen has 20 to 30 doors and 6 to 10 drawers.</div>
+    <div class="cabinet-inputs">
+      <div class="cab-input-group">
+        <div class="cab-icon">🚪</div>
+        <label>Cabinet Doors</label>
+        <div class="cab-qty-control">
+          <button class="cab-qty-btn" onclick="changeCabQty('doors',-1)">&#8722;</button>
+          <span class="cab-qty-val" id="qty-doors">0</span>
+          <button class="cab-qty-btn" onclick="changeCabQty('doors',1)">&#43;</button>
+        </div>
+      </div>
+      <div class="cab-input-group">
+        <div class="cab-icon">📦</div>
+        <label>Drawer Faces</label>
+        <div class="cab-qty-control">
+          <button class="cab-qty-btn" onclick="changeCabQty('drawers',-1)">&#8722;</button>
+          <span class="cab-qty-val" id="qty-drawers">0</span>
+          <button class="cab-qty-btn" onclick="changeCabQty('drawers',1)">&#43;</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="addons-title">Cabinet Add-Ons (Optional)</div>
+    <div class="addon-grid">
+      <label class="addon-check">
+        <input type="checkbox" id="addon-face-frames" />
+        <div class="addon-check-label">
+          <strong>Face Frame Painting</strong>
+          <span>Paint the cabinet box frames as well</span>
+        </div>
+      </label>
+      <label class="addon-check">
+        <input type="checkbox" id="addon-hardware" />
+        <div class="addon-check-label">
+          <strong>Hardware Removal and Reinstall</strong>
+          <span>We remove and reinstall all knobs and pulls</span>
+        </div>
+      </label>
+    </div>
+    <div id="cabinet-error" class="error-msg" style="display:none;">Please add at least one door or drawer to continue.</div>
+  </div>
+
+  <!-- STEP 3: PAINT TIER -->
+  <div class="calc-section" id="section-3">
+    <div class="section-title">Choose your paint quality</div>
+    <div class="section-subtitle">All options include professional prep, priming where needed, and expert application. Higher tiers offer better durability and coverage.</div>
+    <div class="tier-cards">
+      <div class="tier-card" data-tier="good" onclick="selectTier(this)">
+        <div class="tier-badge good">GOOD</div>
+        <div class="tier-name">Good</div>
+        <div class="tier-brand">Sherwin-Williams SuperPaint or Duration<br><br>Durable, quality finish for everyday living</div>
+      </div>
+      <div class="tier-card" data-tier="better" onclick="selectTier(this)">
+        <div class="tier-badge better">BETTER</div>
+        <div class="tier-name">Better</div>
+        <div class="tier-brand">Sherwin-Williams Emerald or Benjamin Moore Regal Select<br><br>Premium performance, richer color depth</div>
+      </div>
+      <div class="tier-card" data-tier="best" onclick="selectTier(this)">
+        <div class="tier-badge best">BEST</div>
+        <div class="tier-name">Best</div>
+        <div class="tier-brand">Benjamin Moore Aura or Dunn-Edwards Evershield<br><br>Top-of-line, longest lasting, self-priming</div>
+      </div>
+    </div>
+    <div id="tier-error" class="error-msg" style="display:none;">Please select a paint tier to continue.</div>
+  </div>
+
+  <!-- STEP 4: LEAD CAPTURE -->
+  <div class="calc-section" id="section-4">
+    <div class="lead-form-intro">
+      <h3>Almost there! Where should we send your estimate?</h3>
+      <p>Enter your contact info below to receive your personalized estimate. A member of the SGB team will also follow up to help you get an accurate, no-surprise quote.</p>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label for="lead-name">Full Name *</label>
+        <input type="text" id="lead-name" placeholder="Jane Smith" autocomplete="name" />
+        <div class="error-msg" id="err-name" style="display:none;">Please enter your name.</div>
+      </div>
+      <div class="form-group">
+        <label for="lead-phone">Phone Number *</label>
+        <input type="tel" id="lead-phone" placeholder="(530) 555-0100" autocomplete="tel" />
+        <div class="error-msg" id="err-phone" style="display:none;">Please enter your phone number.</div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full">
+        <label for="lead-email">Email Address *</label>
+        <input type="email" id="lead-email" placeholder="jane@example.com" autocomplete="email" />
+        <div class="error-msg" id="err-email" style="display:none;">Please enter a valid email address.</div>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full">
+        <label for="lead-address">Project Address (optional)</label>
+        <input type="text" id="lead-address" placeholder="123 Oak Street, Chico, CA" autocomplete="street-address" />
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full">
+        <label for="lead-notes">Additional Notes (optional)</label>
+        <textarea id="lead-notes" placeholder="Any specific details about your project, timeline, or questions..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5: ESTIMATE RESULT -->
+  <div class="calc-section" id="section-5">
+    <div class="success-box">
+      <span class="check-icon">&#10003;</span>
+      <p>Your estimate has been sent to your email! A member of the SGB Custom Painting team will reach out shortly to discuss your project and provide an accurate, no-surprise quote.</p>
+    </div>
+
+    <div class="estimate-result">
+      <h3>Your Estimated Project Range</h3>
+      <div class="estimate-range" id="result-range">$0 - $0</div>
+      <div class="estimate-note">Based on your selections and current Northern California market rates</div>
+    </div>
+
+    <div class="estimate-breakdown" id="result-breakdown">
+      <div class="breakdown-title">Estimate Breakdown</div>
+      <div id="breakdown-items"></div>
+      <div class="breakdown-total">
+        <span>Estimated Total Range</span>
+        <span id="breakdown-total-val">$0 - $0</span>
+      </div>
+    </div>
+
+    <div class="info-banner">
+      <span>&#9432;</span>
+      <span>This estimate is based on average market rates for the Chico, CA area. Your final quote may vary based on site conditions, surface prep requirements, and material choices. SGB Custom Painting will provide a detailed, written quote after an on-site consultation.</span>
+    </div>
+  </div>
+
+  <!-- NAV BUTTONS -->
+  <div class="nav-buttons" id="nav-buttons">
+    <button class="btn btn-back" id="btn-back" onclick="goBack()" style="visibility:hidden;">&#8592; Back</button>
+    <button class="btn btn-next" id="btn-next" onclick="goNext()">Next &#8594;</button>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="calc-footer">
+    <div class="disclaimer">*Estimate only. Pricing may vary based on project conditions, surface prep requirements, and material selection. Contact SGB Custom Painting for a formal, no-obligation quote.*</div>
+    <div class="built-by">Painting Cost Calculator by <a href="https://www.petersonseoconsulting.com" target="_blank" rel="noopener">Peterson SEO</a></div>
+  </div>
+
+</div><!-- end calc-wrapper -->
+
+<script>
+// ===== STATE =====
+const state = {
+  projectType: null,   // 'interior' | 'exterior' | 'cabinet'
+  homeSize: null,      // 'small' | 'medium' | 'large' | 'xlarge'
+  paintTier: null,     // 'good' | 'better' | 'best'
+  rooms: {
+    'small-bed': 0, 'std-bed': 0, 'master-bed': 0,
+    'living': 0, 'dining': 0, 'kitchen': 0,
+    'bath-sm': 0, 'bath-master': 0,
+    'hallway': 0, 'office': 0, 'stair': 0
+  },
+  cabDoors: 0,
+  cabDrawers: 0,
+  currentStep: 1,
+  totalSteps: 5
+};
+
+// ===== PRICING TABLES =====
+const roomPrices = {
+  'small-bed':   { good: 450,  better: 550,  best: 700  },
+  'std-bed':     { good: 550,  better: 675,  best: 850  },
+  'master-bed':  { good: 700,  better: 875,  best: 1100 },
+  'living':      { good: 750,  better: 925,  best: 1150 },
+  'dining':      { good: 550,  better: 675,  best: 850  },
+  'kitchen':     { good: 600,  better: 750,  best: 950  },
+  'bath-sm':     { good: 350,  better: 425,  best: 550  },
+  'bath-master': { good: 500,  better: 625,  best: 775  },
+  'hallway':     { good: 350,  better: 425,  best: 550  },
+  'office':      { good: 550,  better: 675,  best: 850  },
+  'stair':       { good: 450,  better: 550,  best: 700  }
+};
+
+const roomLabels = {
+  'small-bed': 'Small Bedroom', 'std-bed': 'Standard Bedroom',
+  'master-bed': 'Master Bedroom', 'living': 'Living Room',
+  'dining': 'Dining Room', 'kitchen': 'Kitchen',
+  'bath-sm': 'Small Bathroom', 'bath-master': 'Master Bathroom',
+  'hallway': 'Hallway / Entry', 'office': 'Office / Den',
+  'stair': 'Stairwell / Landing'
+};
+
+const exteriorPrices = {
+  small:  { good: 2800, better: 3500,  best: 4400  },
+  medium: { good: 3800, better: 4750,  best: 5900  },
+  large:  { good: 5200, better: 6500,  best: 8100  },
+  xlarge: { good: 7000, better: 8750,  best: 10900 }
+};
+
+const cabPrices = {
+  door:   { good: 75,  better: 95,  best: 125 },
+  drawer: { good: 45,  better: 60,  best: 80  },
+  frames: { good: 200, better: 250, best: 325 }
+};
+
+// Interior add-on prices (per room count)
+const addonPrices = {
+  wallpaper:        { perRoom: 450 },  // avg across sizes
+  popcorn:          { perRoom: 400 },
+  'repairs-minor':  { perRoom: 150 },
+  'repairs-moderate':{ perRoom: 350 }
+};
+
+// Exterior add-on flat prices (prep work is the same cost regardless of paint tier)
+const extAddonPrices = {
+  powerwash:    275,
+  'ext-repairs':700,
+  deck:         1000,
+  'trim-accent':325
+};
+
+// ===== STEP NAVIGATION =====
+function updateProgress() {
+  for (let i = 1; i <= 5; i++) {
+    const dot = document.getElementById('step-dot-' + i);
+    dot.classList.remove('active', 'done');
+    if (i < state.currentStep) dot.classList.add('done');
+    if (i === state.currentStep) dot.classList.add('active');
+  }
+  const backBtn = document.getElementById('btn-back');
+  const nextBtn = document.getElementById('btn-next');
+  backBtn.style.visibility = state.currentStep === 1 ? 'hidden' : 'visible';
+
+  if (state.currentStep === 4) {
+    nextBtn.textContent = '';
+    nextBtn.innerHTML = 'Get My Estimate &#8594;';
+    nextBtn.className = 'btn btn-submit';
+  } else if (state.currentStep === 5) {
+    nextBtn.textContent = '';
+    nextBtn.innerHTML = 'Start Over';
+    nextBtn.className = 'btn btn-restart';
+    backBtn.style.visibility = 'hidden';
+  } else {
+    nextBtn.innerHTML = 'Next &#8594;';
+    nextBtn.className = 'btn btn-next';
+  }
+}
+
+function showSection(id) {
+  document.querySelectorAll('.calc-section').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+}
+
+function getSectionId(step) {
+  if (step === 1) return 'section-1';
+  if (step === 2) {
+    if (state.projectType === 'interior') return 'section-2-interior';
+    if (state.projectType === 'exterior') return 'section-2-exterior';
+    if (state.projectType === 'cabinet')  return 'section-2-cabinet';
+  }
+  if (step === 3) return 'section-3';
+  if (step === 4) return 'section-4';
+  if (step === 5) return 'section-5';
+  return 'section-1';
+}
+
+function goNext() {
+  if (state.currentStep === 5) { restartCalc(); return; }
+  if (!validateStep(state.currentStep)) return;
+  if (state.currentStep === 4) {
+    submitEstimate();
+    return;
+  }
+  state.currentStep++;
+  showSection(getSectionId(state.currentStep));
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function goBack() {
+  if (state.currentStep <= 1) return;
+  state.currentStep--;
+  showSection(getSectionId(state.currentStep));
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===== VALIDATION =====
+function validateStep(step) {
+  if (step === 1) {
+    if (!state.projectType) {
+      document.getElementById('type-error').style.display = 'block';
+      return false;
+    }
+    document.getElementById('type-error').style.display = 'none';
+    return true;
+  }
+  if (step === 2) {
+    if (state.projectType === 'interior') {
+      const total = Object.values(state.rooms).reduce((a, b) => a + b, 0);
+      if (total === 0) {
+        document.getElementById('interior-room-error').style.display = 'block';
+        return false;
+      }
+      document.getElementById('interior-room-error').style.display = 'none';
+    }
+    if (state.projectType === 'exterior') {
+      if (!state.homeSize) {
+        document.getElementById('exterior-size-error').style.display = 'block';
+        return false;
+      }
+      document.getElementById('exterior-size-error').style.display = 'none';
+    }
+    if (state.projectType === 'cabinet') {
+      if (state.cabDoors === 0 && state.cabDrawers === 0) {
+        document.getElementById('cabinet-error').style.display = 'block';
+        return false;
+      }
+      document.getElementById('cabinet-error').style.display = 'none';
+    }
+    return true;
+  }
+  if (step === 3) {
+    if (!state.paintTier) {
+      document.getElementById('tier-error').style.display = 'block';
+      return false;
+    }
+    document.getElementById('tier-error').style.display = 'none';
+    return true;
+  }
+  if (step === 4) {
+    let valid = true;
+    const name = document.getElementById('lead-name').value.trim();
+    const phone = document.getElementById('lead-phone').value.trim();
+    const email = document.getElementById('lead-email').value.trim();
+    if (!name) {
+      document.getElementById('err-name').style.display = 'block';
+      document.getElementById('lead-name').classList.add('field-error');
+      valid = false;
+    } else {
+      document.getElementById('err-name').style.display = 'none';
+      document.getElementById('lead-name').classList.remove('field-error');
+    }
+    if (!phone) {
+      document.getElementById('err-phone').style.display = 'block';
+      document.getElementById('lead-phone').classList.add('field-error');
+      valid = false;
+    } else {
+      document.getElementById('err-phone').style.display = 'none';
+      document.getElementById('lead-phone').classList.remove('field-error');
+    }
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email || !emailRe.test(email)) {
+      document.getElementById('err-email').style.display = 'block';
+      document.getElementById('lead-email').classList.add('field-error');
+      valid = false;
+    } else {
+      document.getElementById('err-email').style.display = 'none';
+      document.getElementById('lead-email').classList.remove('field-error');
+    }
+    return valid;
+  }
+  return true;
+}
+
+// ===== SELECTION HANDLERS =====
+function selectType(el) {
+  document.querySelectorAll('.type-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.projectType = el.dataset.type;
+  document.getElementById('type-error').style.display = 'none';
+}
+
+function selectSize(el) {
+  document.querySelectorAll('.size-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.homeSize = el.dataset.size;
+  document.getElementById('exterior-size-error').style.display = 'none';
+}
+
+function selectTier(el) {
+  document.querySelectorAll('.tier-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  state.paintTier = el.dataset.tier;
+  document.getElementById('tier-error').style.display = 'none';
+}
+
+// ===== QUANTITY CONTROLS =====
+function changeQty(room, delta) {
+  state.rooms[room] = Math.max(0, (state.rooms[room] || 0) + delta);
+  document.getElementById('qty-' + room).textContent = state.rooms[room];
+}
+
+function changeCabQty(type, delta) {
+  if (type === 'doors') {
+    state.cabDoors = Math.max(0, state.cabDoors + delta);
+    document.getElementById('qty-doors').textContent = state.cabDoors;
+  } else {
+    state.cabDrawers = Math.max(0, state.cabDrawers + delta);
+    document.getElementById('qty-drawers').textContent = state.cabDrawers;
+  }
+}
+
+// ===== ESTIMATE CALCULATION =====
+function calcEstimate() {
+  const tier = state.paintTier;
+  const items = [];
+  let low = 0, high = 0;
+
+  if (state.projectType === 'interior') {
+    // Rooms
+    for (const [room, qty] of Object.entries(state.rooms)) {
+      if (qty > 0) {
+        const price = roomPrices[room][tier] * qty;
+        const priceHigh = Math.round(price * 1.2);
+        items.push({ name: qty + 'x ' + roomLabels[room], low: price, high: priceHigh });
+        low += price;
+        high += priceHigh;
+      }
+    }
+    // Add-ons
+    const totalRooms = Object.values(state.rooms).reduce((a, b) => a + b, 0);
+    if (document.getElementById('addon-wallpaper').checked) {
+      const p = addonPrices.wallpaper.perRoom * totalRooms;
+      items.push({ name: 'Wallpaper Removal', low: p, high: Math.round(p * 1.3) });
+      low += p; high += Math.round(p * 1.3);
+    }
+    if (document.getElementById('addon-popcorn').checked) {
+      const p = addonPrices.popcorn.perRoom * totalRooms;
+      items.push({ name: 'Popcorn Ceiling Removal', low: p, high: Math.round(p * 1.3) });
+      low += p; high += Math.round(p * 1.3);
+    }
+    if (document.getElementById('addon-repairs-minor').checked) {
+      const p = addonPrices['repairs-minor'].perRoom * totalRooms;
+      items.push({ name: 'Minor Drywall Repairs', low: p, high: Math.round(p * 1.3) });
+      low += p; high += Math.round(p * 1.3);
+    }
+    if (document.getElementById('addon-repairs-moderate').checked) {
+      const p = addonPrices['repairs-moderate'].perRoom * totalRooms;
+      items.push({ name: 'Moderate Drywall Repairs', low: p, high: Math.round(p * 1.3) });
+      low += p; high += Math.round(p * 1.3);
+    }
+  }
+
+  if (state.projectType === 'exterior') {
+    const base = exteriorPrices[state.homeSize][tier];
+    const baseHigh = Math.round(base * 1.2);
+    items.push({ name: 'Exterior Painting (' + state.homeSize.charAt(0).toUpperCase() + state.homeSize.slice(1) + ' Home)', low: base, high: baseHigh });
+    low += base; high += baseHigh;
+
+    if (document.getElementById('addon-powerwash').checked) {
+      const p = extAddonPrices.powerwash;
+      items.push({ name: 'Power Washing', low: p, high: Math.round(p * 1.15) });
+      low += p; high += Math.round(p * 1.15);
+    }
+    if (document.getElementById('addon-ext-repairs').checked) {
+      const p = extAddonPrices['ext-repairs'];
+      items.push({ name: 'Wood Repairs / Rot Replacement', low: p, high: Math.round(p * 1.4) });
+      low += p; high += Math.round(p * 1.4);
+    }
+    if (document.getElementById('addon-deck').checked) {
+      const p = extAddonPrices.deck;
+      items.push({ name: 'Deck / Fence Painting', low: p, high: Math.round(p * 1.3) });
+      low += p; high += Math.round(p * 1.3);
+    }
+    if (document.getElementById('addon-trim-accent').checked) {
+      const p = extAddonPrices['trim-accent'];
+      items.push({ name: 'Accent Trim Color', low: p, high: Math.round(p * 1.15) });
+      low += p; high += Math.round(p * 1.15);
+    }
+  }
+
+  if (state.projectType === 'cabinet') {
+    if (state.cabDoors > 0) {
+      const p = cabPrices.door[tier] * state.cabDoors;
+      items.push({ name: state.cabDoors + ' Cabinet Doors', low: p, high: Math.round(p * 1.2) });
+      low += p; high += Math.round(p * 1.2);
+    }
+    if (state.cabDrawers > 0) {
+      const p = cabPrices.drawer[tier] * state.cabDrawers;
+      items.push({ name: state.cabDrawers + ' Drawer Faces', low: p, high: Math.round(p * 1.2) });
+      low += p; high += Math.round(p * 1.2);
+    }
+    if (document.getElementById('addon-face-frames').checked) {
+      const p = cabPrices.frames[tier];
+      items.push({ name: 'Face Frame Painting', low: p, high: Math.round(p * 1.2) });
+      low += p; high += Math.round(p * 1.2);
+    }
+    if (document.getElementById('addon-hardware').checked) {
+      items.push({ name: 'Hardware Removal and Reinstall', low: 50, high: 100 });
+      low += 50; high += 100;
+    }
+  }
+
+  return { items, low, high };
+}
+
+function fmt(n) {
+  return '$' + n.toLocaleString('en-US');
+}
+
+function renderEstimate() {
+  const { items, low, high } = calcEstimate();
+  document.getElementById('result-range').textContent = fmt(low) + ' - ' + fmt(high);
+  document.getElementById('breakdown-total-val').textContent = fmt(low) + ' - ' + fmt(high);
+
+  const container = document.getElementById('breakdown-items');
+  container.innerHTML = '';
+  items.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'breakdown-item';
+    div.innerHTML = '<span class="item-name">' + item.name + '</span><span class="item-price">' + fmt(item.low) + ' - ' + fmt(item.high) + '</span>';
+    container.appendChild(div);
+  });
+}
+
+// ===== EMAIL SUBMISSION =====
+async function submitEstimate() {
+  const btn = document.getElementById('btn-next');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Sending...';
+
+  const { items, low, high } = calcEstimate();
+
+  const leadData = {
+    name:    document.getElementById('lead-name').value.trim(),
+    phone:   document.getElementById('lead-phone').value.trim(),
+    email:   document.getElementById('lead-email').value.trim(),
+    address: document.getElementById('lead-address').value.trim(),
+    notes:   document.getElementById('lead-notes').value.trim(),
+    projectType: state.projectType,
+    paintTier:   state.paintTier,
+    homeSize:    state.homeSize,
+    rooms:       state.rooms,
+    cabDoors:    state.cabDoors,
+    cabDrawers:  state.cabDrawers,
+    estimateLow:  low,
+    estimateHigh: high,
+    breakdown:    items
+  };
+
+  try {
+    const response = await fetch('BACKEND_URL_PLACEHOLDER/send-estimate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(leadData)
+    });
+
+    if (!response.ok) throw new Error('Server error');
+  } catch (err) {
+    // Silently continue even if email fails - still show estimate
+    console.warn('Email send failed:', err);
+  }
+
+  renderEstimate();
+  state.currentStep = 5;
+  showSection('section-5');
+  updateProgress();
+  btn.disabled = false;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===== RESTART =====
+function restartCalc() {
+  state.projectType = null;
+  state.homeSize = null;
+  state.paintTier = null;
+  state.rooms = { 'small-bed':0,'std-bed':0,'master-bed':0,'living':0,'dining':0,'kitchen':0,'bath-sm':0,'bath-master':0,'hallway':0,'office':0,'stair':0 };
+  state.cabDoors = 0;
+  state.cabDrawers = 0;
+  state.currentStep = 1;
+
+  document.querySelectorAll('.type-card, .size-card, .tier-card').forEach(c => c.classList.remove('selected'));
+  document.querySelectorAll('.qty-val').forEach(el => el.textContent = '0');
+  document.getElementById('qty-doors').textContent = '0';
+  document.getElementById('qty-drawers').textContent = '0';
+  document.getElementById('lead-name').value = '';
+  document.getElementById('lead-phone').value = '';
+  document.getElementById('lead-email').value = '';
+  document.getElementById('lead-address').value = '';
+  document.getElementById('lead-notes').value = '';
+  document.getElementById('addon-powerwash').checked = true;
+
+  showSection('section-1');
+  updateProgress();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ===== INIT =====
+updateProgress();
+</script>
+</body>
+</html>

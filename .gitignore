@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.pyo
+.env
+test_sheets.py
+test_server.py
+setup_gsheets.py
+# google_credentials.json is included intentionally for Render deployment
+# Remove from git if using env var approach instead

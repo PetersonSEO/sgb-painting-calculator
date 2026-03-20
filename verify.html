@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SGB Calculator - Math Verification</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a1a2e; padding: 20px; }
+    :root { --navy: #052D5C; --blue: #2D71AE; --red: #D91D23; --green: #1a7a4a; }
+    h1 { color: var(--navy); font-size: 1.5rem; margin-bottom: 6px; }
+    .subtitle { color: #5a6a7e; font-size: 0.9rem; margin-bottom: 24px; }
+    .section { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 12px rgba(5,45,92,0.08); }
+    .section-title { font-size: 1.1rem; font-weight: 700; color: var(--navy); margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid var(--navy); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    th { background: var(--navy); color: #fff; padding: 9px 12px; text-align: left; }
+    th:not(:first-child) { text-align: right; }
+    td { padding: 8px 12px; border-bottom: 1px solid #e8edf2; }
+    td:not(:first-child) { text-align: right; }
+    tr:nth-child(even) td { background: #f5f8fc; }
+    .total-row td { font-weight: 700; color: var(--navy); background: #EEF4FB !important; border-top: 2px solid var(--navy); }
+    .good { color: #2e7d32; font-weight: 600; }
+    .better { color: #1565c0; font-weight: 600; }
+    .best { color: #880e4f; font-weight: 600; }
+    .formula { font-size: 0.78rem; color: #5a6a7e; font-style: italic; margin-top: 8px; }
+    .check { color: var(--green); font-weight: 700; }
+    .scenario-header { background: var(--blue); color: #fff; padding: 10px 14px; border-radius: 8px; margin: 16px 0 10px; font-weight: 700; font-size: 0.9rem; }
+    .note { background: #fff8e1; border: 1px solid #ffe082; border-radius: 8px; padding: 12px 14px; font-size: 0.83rem; color: #5d4037; margin-top: 12px; }
+    .range-col { color: var(--navy); }
+  </style>
+</head>
+<body>
+  <h1>SGB Calculator — Math Verification Sheet</h1>
+  <p class="subtitle">Use this page to verify all pricing calculations are correct before going live. Low = base price. High = base x 1.20 (20% variance for site conditions).</p>
+
+  <!-- INTERIOR ROOM PRICES -->
+  <div class="section">
+    <div class="section-title">Interior Painting — Room Base Prices (per room, includes walls, ceiling, trim, doors)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Room Type</th>
+          <th>Good (SW SuperPaint)</th>
+          <th>Better (SW Emerald / BM Regal)</th>
+          <th>Best (BM Aura / DE Evershield)</th>
+          <th>High Range (+20%)</th>
+        </tr>
+      </thead>
+      <tbody id="room-table"></tbody>
+    </table>
+    <p class="formula">Formula: Low = base price per tier. High = Low x 1.20. Range shown on calculator = Low - High.</p>
+  </div>
+
+  <!-- INTERIOR SCENARIO TESTS -->
+  <div class="section">
+    <div class="section-title">Interior Painting — Sample Scenario Tests</div>
+
+    <div class="scenario-header">Scenario A: Typical 3-Bed / 2-Bath Home (Good Tier)</div>
+    <table>
+      <thead><tr><th>Room</th><th>Qty</th><th>Unit Price</th><th>Subtotal Low</th><th>Subtotal High</th></tr></thead>
+      <tbody id="scenario-a"></tbody>
+    </table>
+
+    <div class="scenario-header">Scenario B: Full Interior Repaint — 4 Bed / 2 Bath + Living + Dining + Kitchen (Better Tier)</div>
+    <table>
+      <thead><tr><th>Room</th><th>Qty</th><th>Unit Price</th><th>Subtotal Low</th><th>Subtotal High</th></tr></thead>
+      <tbody id="scenario-b"></tbody>
+    </table>
+
+    <div class="scenario-header">Scenario C: Master Suite + 2 Bathrooms + Hallway with Wallpaper Removal (Best Tier)</div>
+    <table>
+      <thead><tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Subtotal Low</th><th>Subtotal High</th></tr></thead>
+      <tbody id="scenario-c"></tbody>
+    </table>
+  </div>
+
+  <!-- EXTERIOR PRICES -->
+  <div class="section">
+    <div class="section-title">Exterior Painting — Base Prices by Home Size</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Home Size</th>
+          <th>Good</th>
+          <th>Good High (+20%)</th>
+          <th>Better</th>
+          <th>Better High (+20%)</th>
+          <th>Best</th>
+          <th>Best High (+20%)</th>
+        </tr>
+      </thead>
+      <tbody id="ext-table"></tbody>
+    </table>
+
+    <div class="scenario-header">Scenario D: Medium Home Exterior + Power Wash + Deck (Better Tier)</div>
+    <table>
+      <thead><tr><th>Item</th><th>Price Low</th><th>Price High</th></tr></thead>
+      <tbody id="scenario-d"></tbody>
+    </table>
+  </div>
+
+  <!-- CABINET PRICES -->
+  <div class="section">
+    <div class="section-title">Cabinet Painting — Per Unit Prices</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Good</th>
+          <th>Better</th>
+          <th>Best</th>
+        </tr>
+      </thead>
+      <tbody id="cab-table"></tbody>
+    </table>
+
+    <div class="scenario-header">Scenario E: Typical Kitchen — 20 Doors + 8 Drawers + Face Frames + Hardware (Better Tier)</div>
+    <table>
+      <thead><tr><th>Item</th><th>Qty</th><th>Unit Price</th><th>Subtotal Low</th><th>Subtotal High</th></tr></thead>
+      <tbody id="scenario-e"></tbody>
+    </table>
+  </div>
+
+  <!-- ADD-ON PRICES -->
+  <div class="section">
+    <div class="section-title">Add-On Pricing Reference</div>
+    <table>
+      <thead><tr><th>Add-On</th><th>Per Room / Flat</th><th>Example: 5 Rooms Low</th><th>Example: 5 Rooms High</th></tr></thead>
+      <tbody id="addon-table"></tbody>
+    </table>
+    <p class="formula">Add-on High = Low x 1.30 (slightly higher variance for prep work). Exterior add-ons are flat amounts per tier.</p>
+  </div>
+
+  <div class="note">
+    <strong>How to use this sheet:</strong> Review each scenario and confirm the numbers look reasonable for the Chico, CA market. When Scott provides his actual pricing, update the numbers in <code>index.html</code> inside the <code>const roomPrices</code>, <code>exteriorPrices</code>, and <code>cabPrices</code> objects — or use the Admin Panel to update them through a form.
+  </div>
+
+<script>
+const roomPrices = {
+  'small-bed':   { good: 450,  better: 550,  best: 700  },
+  'std-bed':     { good: 550,  better: 675,  best: 850  },
+  'master-bed':  { good: 700,  better: 875,  best: 1100 },
+  'living':      { good: 750,  better: 925,  best: 1150 },
+  'dining':      { good: 550,  better: 675,  best: 850  },
+  'kitchen':     { good: 600,  better: 750,  best: 950  },
+  'bath-sm':     { good: 350,  better: 425,  best: 550  },
+  'bath-master': { good: 500,  better: 625,  best: 775  },
+  'hallway':     { good: 350,  better: 425,  best: 550  },
+  'office':      { good: 550,  better: 675,  best: 850  },
+  'stair':       { good: 450,  better: 550,  best: 700  }
+};
+const roomLabels = {
+  'small-bed':'Small Bedroom','std-bed':'Standard Bedroom','master-bed':'Master Bedroom',
+  'living':'Living Room','dining':'Dining Room','kitchen':'Kitchen',
+  'bath-sm':'Small Bathroom','bath-master':'Master Bathroom',
+  'hallway':'Hallway / Entry','office':'Office / Den','stair':'Stairwell / Landing'
+};
+const exteriorPrices = {
+  small:  { good: 2800, better: 3500,  best: 4400  },
+  medium: { good: 3800, better: 4750,  best: 5900  },
+  large:  { good: 5200, better: 6500,  best: 8100  },
+  xlarge: { good: 7000, better: 8750,  best: 10900 }
+};
+const extSizeLabels = { small:'Small (< 1,200 sqft)', medium:'Medium (1,200-1,800)', large:'Large (1,800-2,500)', xlarge:'XL (2,500+)' };
+const cabPrices = {
+  door:   { good: 75,  better: 95,  best: 125 },
+  drawer: { good: 45,  better: 60,  best: 80  },
+  frames: { good: 200, better: 250, best: 325 }
+};
+const addonPrices = {
+  'Wallpaper Removal':         { perRoom: 450, high: 1.3 },
+  'Popcorn Ceiling Removal':   { perRoom: 400, high: 1.3 },
+  'Minor Drywall Repairs':     { perRoom: 150, high: 1.3 },
+  'Moderate Drywall Repairs':  { perRoom: 350, high: 1.3 }
+};
+const extAddonPrices = {
+  'Power Washing':             { good: 300, better: 350, best: 400 },
+  'Wood Repairs / Rot':        { good: 600, better: 750, best: 950 },
+  'Deck / Fence Painting':     { good: 900, better: 1100, best: 1400 },
+  'Accent Trim Color':         { good: 300, better: 350, best: 400 }
+};
+
+const fmt = n => '$' + n.toLocaleString('en-US');
+const high = n => Math.round(n * 1.2);
+
+// Room table
+const roomTbl = document.getElementById('room-table');
+for (const [key, prices] of Object.entries(roomPrices)) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${roomLabels[key]}</td>
+    <td class="good">${fmt(prices.good)}</td>
+    <td class="better">${fmt(prices.better)}</td>
+    <td class="best">${fmt(prices.best)}</td>
+    <td class="range-col">${fmt(prices.good)} - ${fmt(high(prices.best))}</td>`;
+  roomTbl.appendChild(tr);
+}
+
+// Scenario A: 3-bed/2-bath Good
+const scenA = [
+  { room:'std-bed', qty:2 }, { room:'master-bed', qty:1 },
+  { room:'bath-sm', qty:1 }, { room:'bath-master', qty:1 },
+  { room:'living', qty:1 }, { room:'kitchen', qty:1 }
+];
+let totLow=0, totHigh=0;
+const aTbl = document.getElementById('scenario-a');
+scenA.forEach(s => {
+  const p = roomPrices[s.room].good * s.qty;
+  const h = high(p);
+  totLow += p; totHigh += h;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${roomLabels[s.room]}</td><td>${s.qty}</td><td>${fmt(roomPrices[s.room].good)}</td><td>${fmt(p)}</td><td>${fmt(h)}</td>`;
+  aTbl.appendChild(tr);
+});
+const totRowA = document.createElement('tr');
+totRowA.className = 'total-row';
+totRowA.innerHTML = `<td colspan="3">TOTAL (Good Tier)</td><td>${fmt(totLow)}</td><td>${fmt(totHigh)}</td>`;
+aTbl.appendChild(totRowA);
+
+// Scenario B: Full interior Better
+const scenB = [
+  { room:'std-bed', qty:3 }, { room:'master-bed', qty:1 },
+  { room:'bath-sm', qty:1 }, { room:'bath-master', qty:1 },
+  { room:'living', qty:1 }, { room:'dining', qty:1 }, { room:'kitchen', qty:1 }
+];
+let bLow=0, bHigh=0;
+const bTbl = document.getElementById('scenario-b');
+scenB.forEach(s => {
+  const p = roomPrices[s.room].better * s.qty;
+  const h = high(p);
+  bLow += p; bHigh += h;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${roomLabels[s.room]}</td><td>${s.qty}</td><td>${fmt(roomPrices[s.room].better)}</td><td>${fmt(p)}</td><td>${fmt(h)}</td>`;
+  bTbl.appendChild(tr);
+});
+const totRowB = document.createElement('tr');
+totRowB.className = 'total-row';
+totRowB.innerHTML = `<td colspan="3">TOTAL (Better Tier)</td><td>${fmt(bLow)}</td><td>${fmt(bHigh)}</td>`;
+bTbl.appendChild(totRowB);
+
+// Scenario C: Master + 2 bath + hallway + wallpaper removal Best
+const scenC = [
+  { label:'Master Bedroom', price: roomPrices['master-bed'].best, qty:1 },
+  { label:'Master Bathroom', price: roomPrices['bath-master'].best, qty:1 },
+  { label:'Small Bathroom', price: roomPrices['bath-sm'].best, qty:1 },
+  { label:'Hallway / Entry', price: roomPrices['hallway'].best, qty:1 },
+  { label:'Wallpaper Removal (4 rooms x $450)', price: 450*4, qty:1, isAddon:true }
+];
+let cLow=0, cHigh=0;
+const cTbl = document.getElementById('scenario-c');
+scenC.forEach(s => {
+  const p = s.price * s.qty;
+  const h = s.isAddon ? Math.round(p*1.3) : high(p);
+  cLow += p; cHigh += h;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${s.label}</td><td>${s.qty}</td><td>${fmt(s.price)}</td><td>${fmt(p)}</td><td>${fmt(h)}</td>`;
+  cTbl.appendChild(tr);
+});
+const totRowC = document.createElement('tr');
+totRowC.className = 'total-row';
+totRowC.innerHTML = `<td colspan="3">TOTAL (Best Tier + Wallpaper)</td><td>${fmt(cLow)}</td><td>${fmt(cHigh)}</td>`;
+cTbl.appendChild(totRowC);
+
+// Exterior table
+const extTbl = document.getElementById('ext-table');
+for (const [key, prices] of Object.entries(exteriorPrices)) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${extSizeLabels[key]}</td>
+    <td class="good">${fmt(prices.good)}</td><td>${fmt(high(prices.good))}</td>
+    <td class="better">${fmt(prices.better)}</td><td>${fmt(high(prices.better))}</td>
+    <td class="best">${fmt(prices.best)}</td><td>${fmt(high(prices.best))}</td>`;
+  extTbl.appendChild(tr);
+}
+
+// Scenario D: Medium Better + power wash + deck
+const scenD = [
+  { label:'Medium Home Exterior (Better)', low: exteriorPrices.medium.better, h: high(exteriorPrices.medium.better) },
+  { label:'Power Washing (Better)', low: extAddonPrices['Power Washing'].better, h: Math.round(extAddonPrices['Power Washing'].better*1.15) },
+  { label:'Deck / Fence Painting (Better)', low: extAddonPrices['Deck / Fence Painting'].better, h: Math.round(extAddonPrices['Deck / Fence Painting'].better*1.3) }
+];
+let dLow=0, dHigh=0;
+const dTbl = document.getElementById('scenario-d');
+scenD.forEach(s => {
+  dLow += s.low; dHigh += s.h;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${s.label}</td><td>${fmt(s.low)}</td><td>${fmt(s.h)}</td>`;
+  dTbl.appendChild(tr);
+});
+const totRowD = document.createElement('tr');
+totRowD.className = 'total-row';
+totRowD.innerHTML = `<td>TOTAL (Better Tier)</td><td>${fmt(dLow)}</td><td>${fmt(dHigh)}</td>`;
+dTbl.appendChild(totRowD);
+
+// Cabinet table
+const cabTbl = document.getElementById('cab-table');
+[['Cabinet Door', 'door'],['Drawer Face', 'drawer'],['Face Frames (flat)', 'frames']].forEach(([label, key]) => {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${label}</td>
+    <td class="good">${fmt(cabPrices[key].good)}</td>
+    <td class="better">${fmt(cabPrices[key].better)}</td>
+    <td class="best">${fmt(cabPrices[key].best)}</td>`;
+  cabTbl.appendChild(tr);
+});
+
+// Scenario E: 20 doors + 8 drawers + frames + hardware Better
+const scenE = [
+  { label:'Cabinet Doors', qty:20, unit: cabPrices.door.better },
+  { label:'Drawer Faces', qty:8, unit: cabPrices.drawer.better },
+  { label:'Face Frames (flat)', qty:1, unit: cabPrices.frames.better },
+  { label:'Hardware Removal / Reinstall', qty:1, unit: 50 }
+];
+let eLow=0, eHigh=0;
+const eTbl = document.getElementById('scenario-e');
+scenE.forEach(s => {
+  const p = s.unit * s.qty;
+  const h = high(p);
+  eLow += p; eHigh += h;
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${s.label}</td><td>${s.qty}</td><td>${fmt(s.unit)}</td><td>${fmt(p)}</td><td>${fmt(h)}</td>`;
+  eTbl.appendChild(tr);
+});
+const totRowE = document.createElement('tr');
+totRowE.className = 'total-row';
+totRowE.innerHTML = `<td colspan="3">TOTAL (Better Tier)</td><td>${fmt(eLow)}</td><td>${fmt(eHigh)}</td>`;
+eTbl.appendChild(totRowE);
+
+// Add-on table
+const addonTbl = document.getElementById('addon-table');
+for (const [label, data] of Object.entries(addonPrices)) {
+  const ex5 = data.perRoom * 5;
+  const ex5h = Math.round(ex5 * data.high);
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${label}</td><td>${fmt(data.perRoom)} / room</td><td>${fmt(ex5)}</td><td>${fmt(ex5h)}</td>`;
+  addonTbl.appendChild(tr);
+}
+for (const [label, data] of Object.entries(extAddonPrices)) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = `<td>${label} (Exterior)</td><td>${fmt(data.good)} / ${fmt(data.better)} / ${fmt(data.best)} by tier</td><td colspan="2">Flat per project</td>`;
+  addonTbl.appendChild(tr);
+}
+</script>
+</body>
+</html>

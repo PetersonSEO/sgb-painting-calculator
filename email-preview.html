@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SGB Email Preview</title>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #e8edf2; margin: 0; padding: 20px; }
+    .tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+    .tab { padding: 10px 22px; border-radius: 7px; cursor: pointer; font-weight: 700; font-size: 0.9rem; border: 2px solid #052D5C; background: #fff; color: #052D5C; }
+    .tab.active { background: #052D5C; color: #fff; }
+    .email-frame { display: none; }
+    .email-frame.active { display: block; }
+    .email-label { background: #052D5C; color: #fff; padding: 10px 18px; border-radius: 8px 8px 0 0; font-size: 0.85rem; font-weight: 600; }
+    .email-meta { background: #f5f7fa; border: 1px solid #d0dce8; padding: 12px 18px; font-size: 0.82rem; color: #333; line-height: 1.8; }
+    .email-meta strong { color: #052D5C; }
+    .email-body { border: 1px solid #d0dce8; border-top: none; }
+  </style>
+</head>
+<body>
+  <h2 style="color:#052D5C;margin-bottom:6px;">SGB Email Preview</h2>
+  <p style="color:#5a6a7e;font-size:0.88rem;margin-bottom:18px;">This is exactly what the emails will look like when a customer submits the calculator. Toggle between customer and lead notification views.</p>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showTab('customer')">Customer Email</div>
+    <div class="tab" onclick="showTab('scott')">Lead Notification (Scott + CC: Marketing)</div>
+  </div>
+
+  <!-- CUSTOMER EMAIL -->
+  <div class="email-frame active" id="tab-customer">
+    <div class="email-label">Email Client Preview</div>
+    <div class="email-meta">
+      <strong>From:</strong> SGB Custom Painting &lt;noreply@sgbpainting.com&gt;<br/>
+      <strong>To:</strong> jane.smith@example.com<br/>
+      <strong>Subject:</strong> Your SGB Custom Painting Estimate: $4,750 - $5,700
+    </div>
+    <div class="email-body">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4f8;padding:30px 0;font-family:'Segoe UI',Arial,sans-serif;">
+        <tr><td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(5,45,92,0.10);">
+
+            <tr>
+              <td style="background:#052D5C;padding:28px 28px 22px;text-align:center;">
+                <h1 style="color:#ffffff;font-size:22px;margin:0 0 6px;">Your Painting Estimate is Ready!</h1>
+                <p style="color:rgba(255,255,255,0.78);font-size:14px;margin:0;">SGB Custom Painting | Chico, CA | 530-924-4109</p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:26px 28px 0;">
+                <p style="font-size:15px;color:#1a1a2e;margin:0 0 12px;">Hi Jane,</p>
+                <p style="font-size:14px;color:#333;line-height:1.6;margin:0 0 12px;">Thank you for using the SGB Custom Painting cost estimator! Based on the details you provided, here is your personalized estimate range for your <strong>Interior Painting</strong> project.</p>
+                <p style="font-size:14px;color:#333;line-height:1.6;margin:0;">A member of our team will be reaching out to you shortly to discuss your project in more detail and provide you with an accurate, no-surprise written quote.</p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:20px 28px 0;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#052D5C,#0a4a8c);border-radius:10px;overflow:hidden;">
+                  <tr>
+                    <td style="padding:20px;text-align:center;">
+                      <p style="color:rgba(255,255,255,0.8);font-size:13px;margin:0 0 6px;">Your Estimated Project Range</p>
+                      <p style="color:#ffffff;font-size:28px;font-weight:800;margin:0;">$4,750 - $5,700</p>
+                      <p style="color:rgba(255,255,255,0.65);font-size:12px;margin:8px 0 0;">Based on current Northern California market rates</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:20px 28px 0;">
+                <h2 style="color:#052D5C;font-size:16px;margin:0 0 12px;border-bottom:2px solid #052D5C;padding-bottom:8px;">Estimate Breakdown</h2>
+                <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8edf2;border-radius:8px;overflow:hidden;">
+                  <thead>
+                    <tr style="background:#052D5C;">
+                      <th style="padding:10px 12px;text-align:left;color:#fff;font-size:13px;">Line Item</th>
+                      <th style="padding:10px 12px;text-align:right;color:#fff;font-size:13px;">Range</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;">2x Standard Bedroom</td><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;font-weight:600;color:#052D5C;text-align:right;">$1,350 - $1,620</td></tr>
+                    <tr><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;">1x Master Bedroom</td><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;font-weight:600;color:#052D5C;text-align:right;">$875 - $1,050</td></tr>
+                    <tr><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;">1x Living Room</td><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;font-weight:600;color:#052D5C;text-align:right;">$925 - $1,110</td></tr>
+                    <tr><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;">1x Kitchen</td><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;font-weight:600;color:#052D5C;text-align:right;">$750 - $900</td></tr>
+                    <tr><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;">2x Small Bathroom</td><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;font-weight:600;color:#052D5C;text-align:right;">$850 - $1,020</td></tr>
+                    <tr style="background:#EEF4FB;"><td style="padding:10px 12px;font-size:14px;font-weight:700;color:#052D5C;">TOTAL ESTIMATE</td><td style="padding:10px 12px;font-size:14px;font-weight:700;color:#052D5C;text-align:right;">$4,750 - $5,700</td></tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:16px 28px 0;">
+                <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFF8E1;border:1px solid #FFE082;border-radius:8px;">
+                  <tr>
+                    <td style="padding:14px 16px;">
+                      <p style="font-size:13px;color:#5D4037;margin:0;line-height:1.6;"><strong>Please note: THIS IS ONLY AN ESTIMATE and not a formal quote.</strong> Pricing may vary based on project conditions, surface prep requirements, and material selection. Contact SGB Custom Painting for a formal, no-obligation quote.</p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:20px 28px 0;">
+                <h2 style="color:#052D5C;font-size:16px;margin:0 0 12px;">Why Choose SGB Custom Painting?</h2>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr><td style="padding:6px 0;font-size:14px;color:#333;">&#10003; &nbsp;25+ Years of Experience in Chico and Northern California</td></tr>
+                  <tr><td style="padding:6px 0;font-size:14px;color:#333;">&#10003; &nbsp;Licensed, Insured and EPA Lead Safe Certified</td></tr>
+                  <tr><td style="padding:6px 0;font-size:14px;color:#333;">&#10003; &nbsp;PDCA Accredited - Professional Painting Standards</td></tr>
+                  <tr><td style="padding:6px 0;font-size:14px;color:#333;">&#10003; &nbsp;No-Surprise Estimates and Transparent Pricing</td></tr>
+                  <tr><td style="padding:6px 0;font-size:14px;color:#333;">&#10003; &nbsp;Premium Paints from Sherwin-Williams, Benjamin Moore and Dunn-Edwards</td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:22px 28px 0;text-align:center;">
+                <a href="tel:5309244109" style="display:inline-block;background:#D91D23;color:#ffffff;text-decoration:none;padding:13px 32px;border-radius:7px;font-weight:700;font-size:15px;">Call Us: 530-924-4109</a>
+                &nbsp;&nbsp;
+                <a href="https://www.sgbpainting.com" style="display:inline-block;background:#052D5C;color:#ffffff;text-decoration:none;padding:13px 32px;border-radius:7px;font-weight:700;font-size:15px;">Visit Our Website</a>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:22px 28px 24px;border-top:1px solid #e8edf2;margin-top:20px;">
+                <p style="font-size:12px;color:#999;margin:0;text-align:center;line-height:1.6;">SGB Custom Painting | Chico, CA | <a href="tel:5309244109" style="color:#2D71AE;">530-924-4109</a> | <a href="https://www.sgbpainting.com" style="color:#2D71AE;">sgbpainting.com</a><br/>
+                Estimate calculator built by <a href="https://www.petersonseoconsulting.com" style="color:#2D71AE;">Peterson SEO</a></p>
+              </td>
+            </tr>
+
+          </table>
+        </td></tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- SCOTT / LEAD EMAIL -->
+  <div class="email-frame" id="tab-scott">
+    <div class="email-label">Email Client Preview</div>
+    <div class="email-meta">
+      <strong>From:</strong> SGB Custom Painting &lt;noreply@sgbpainting.com&gt;<br/>
+      <strong>To:</strong> scott@sgbpainting.com<br/>
+      <strong>CC:</strong> marketing@petersonseoconsulting.com<br/>
+      <strong>Subject:</strong> New Painting Lead: Jane Smith - Interior Painting ($4,750 - $5,700)
+    </div>
+    <div class="email-body">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f4f8;padding:30px 0;font-family:'Segoe UI',Arial,sans-serif;">
+        <tr><td align="center">
+          <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(5,45,92,0.10);">
+
+            <tr>
+              <td style="background:#052D5C;padding:24px 28px;">
+                <h1 style="color:#ffffff;font-size:20px;margin:0;">New Painting Estimate Lead</h1>
+                <p style="color:rgba(255,255,255,0.75);font-size:13px;margin:6px 0 0;">SGB Custom Painting - Cost Calculator</p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="background:#D91D23;padding:12px 28px;">
+                <p style="color:#ffffff;font-size:14px;font-weight:600;margin:0;">Action Required: New lead submitted - follow up within 24 hours</p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:24px 28px 0;">
+                <h2 style="color:#052D5C;font-size:16px;margin:0 0 14px;border-bottom:2px solid #052D5C;padding-bottom:8px;">Contact Information</h2>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr><td style="padding:6px 0;font-size:14px;color:#5a6a7e;width:130px;">Name</td><td style="padding:6px 0;font-size:14px;font-weight:600;color:#1a1a2e;">Jane Smith</td></tr>
+                  <tr><td style="padding:6px 0;font-size:14px;color:#5a6a7e;">Phone</td><td style="padding:6px 0;font-size:14px;font-weight:600;color:#1a1a2e;">(530) 555-0100</td></tr>
+                  <tr><td style="padding:6px 0;font-size:14px;color:#5a6a7e;">Email</td><td style="padding:6px 0;font-size:14px;font-weight:600;color:#1a1a2e;">jane.smith@example.com</td></tr>
+                  <tr><td style="padding:6px 0;font-size:14px;color:#5a6a7e;">Address</td><td style="padding:6px 0;font-size:14px;color:#1a1a2e;">456 Elm Street, Chico, CA 95928</td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:20px 28px 0;">
+                <h2 style="color:#052D5C;font-size:16px;margin:0 0 14px;border-bottom:2px solid #052D5C;padding-bottom:8px;">Project Details</h2>
+                <table width="100%" cellpadding="0" cellspacing="0">
+                  <tr><td style="padding:6px 0;font-size:14px;color:#5a6a7e;width:130px;">Project Type</td><td style="padding:6px 0;font-size:14px;font-weight:600;color:#1a1a2e;">Interior Painting</td></tr>
+                  <tr><td style="padding:6px 0;font-size:14px;color:#5a6a7e;">Paint Tier</td><td style="padding:6px 0;font-size:14px;color:#1a1a2e;">Better (SW Emerald / BM Regal Select)</td></tr>
+                  <tr><td style="padding:6px 0;font-size:14px;color:#5a6a7e;">Rooms</td><td style="padding:6px 0;font-size:14px;color:#1a1a2e;">2x Standard Bedroom, 1x Master Bedroom, 1x Living Room, 1x Kitchen, 2x Small Bathroom</td></tr>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:20px 28px 0;">
+                <h2 style="color:#052D5C;font-size:16px;margin:0 0 14px;border-bottom:2px solid #052D5C;padding-bottom:8px;">Estimate Shown to Customer</h2>
+                <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e8edf2;border-radius:8px;overflow:hidden;">
+                  <thead>
+                    <tr style="background:#052D5C;">
+                      <th style="padding:10px 12px;text-align:left;color:#fff;font-size:13px;">Line Item</th>
+                      <th style="padding:10px 12px;text-align:right;color:#fff;font-size:13px;">Range</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;">2x Standard Bedroom</td><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;font-weight:600;color:#052D5C;text-align:right;">$1,350 - $1,620</td></tr>
+                    <tr><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;">1x Master Bedroom</td><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;font-weight:600;color:#052D5C;text-align:right;">$875 - $1,050</td></tr>
+                    <tr><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;">1x Living Room</td><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;font-weight:600;color:#052D5C;text-align:right;">$925 - $1,110</td></tr>
+                    <tr><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;">1x Kitchen</td><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;font-weight:600;color:#052D5C;text-align:right;">$750 - $900</td></tr>
+                    <tr><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;">2x Small Bathroom</td><td style="padding:8px 12px;border-bottom:1px solid #e8edf2;font-size:14px;font-weight:600;color:#052D5C;text-align:right;">$850 - $1,020</td></tr>
+                    <tr style="background:#EEF4FB;"><td style="padding:10px 12px;font-size:14px;font-weight:700;color:#052D5C;">TOTAL ESTIMATE</td><td style="padding:10px 12px;font-size:14px;font-weight:700;color:#052D5C;text-align:right;">$4,750 - $5,700</td></tr>
+                  </tbody>
+                </table>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:16px 28px 0;">
+                <h2 style="color:#052D5C;font-size:16px;margin:0 0 10px;">Customer Notes</h2>
+                <p style="font-size:14px;color:#333;background:#f5f7fa;padding:12px;border-radius:8px;border-left:3px solid #2D71AE;">Looking to get this done before summer. Flexible on timing. Would like to discuss color options.</p>
+              </td>
+            </tr>
+
+            <tr>
+              <td style="padding:20px 28px 24px;">
+                <p style="font-size:12px;color:#999;margin:0;text-align:center;">This lead was generated via the SGB Custom Painting Cost Calculator. Calculator built by <a href="https://www.petersonseoconsulting.com" style="color:#2D71AE;">Peterson SEO</a>.</p>
+              </td>
+            </tr>
+
+          </table>
+        </td></tr>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    function showTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.email-frame').forEach(f => f.classList.remove('active'));
+      document.getElementById('tab-' + tab).classList.add('active');
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

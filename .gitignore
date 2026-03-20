@@ -5,5 +5,5 @@ __pycache__/
 test_sheets.py
 test_server.py
 setup_gsheets.py
-# google_credentials.json is included intentionally for Render deployment
-# Remove from git if using env var approach instead
+# Google credentials - stored as env var on Render, never commit to git
+google_credentials.json

@@ -22,8 +22,10 @@
   <p style="color:#5a6a7e;font-size:0.88rem;margin-bottom:18px;">This is exactly what the emails will look like when a customer submits the calculator. Toggle between customer and lead notification views.</p>
 
   <div class="tabs">
-    <div class="tab active" onclick="showTab('customer')">Customer Email</div>
-    <div class="tab" onclick="showTab('scott')">Lead Notification (Scott + CC: Marketing)</div>
+    <div class="tab active" onclick="showTab('customer')">Customer Email (HTML)</div>
+    <div class="tab" onclick="showTab('scott')">Lead Notification (HTML)</div>
+    <div class="tab" onclick="showTab('customer-text')">Customer Email (Plain Text)</div>
+    <div class="tab" onclick="showTab('scott-text')">Lead Notification (Plain Text)</div>
   </div>
 
   <!-- CUSTOMER EMAIL -->
@@ -224,6 +226,115 @@
           </table>
         </td></tr>
       </table>
+    </div>
+  </div>
+
+  <!-- CUSTOMER PLAIN TEXT EMAIL -->
+  <div class="email-frame" id="tab-customer-text">
+    <div class="email-label">Customer Confirmation Email &mdash; Plain Text Version (shown when HTML is disabled)</div>
+    <div class="email-meta">
+      <strong>From:</strong> SGB Custom Painting &lt;noreply@sgbpainting.com&gt;<br/>
+      <strong>To:</strong> jane.smith@example.com<br/>
+      <strong>Subject:</strong> Your SGB Custom Painting Estimate: $4,750 - $5,700
+    </div>
+    <div style="border:1px solid #d0dce8;border-top:none;background:#ffffff;padding:24px 28px;">
+      <pre style="font-family:'Courier New',Courier,monospace;font-size:13px;line-height:1.7;color:#222;white-space:pre-wrap;margin:0;">Your Painting Estimate is Ready!
+SGB Custom Painting | Chico, CA | 530-924-4109
+============================================================
+
+Hi Jane,
+
+Thank you for using the SGB Custom Painting cost estimator! Based on
+the details you provided, here is your personalized estimate range for
+your Interior Painting project.
+
+A member of our team will be reaching out to you shortly to schedule a
+free in-home estimate. Because every project is unique, we always visit
+in person to give you an accurate, no-surprise written quote.
+
+YOUR ESTIMATED PROJECT RANGE
+-----------------------------
+$4,750 - $5,700
+(Based on current Northern California market rates)
+
+ESTIMATE BREAKDOWN
+------------------
+  2x Standard Bedroom: $1,350 - $1,620
+  1x Master Bedroom: $875 - $1,050
+  1x Living Room: $925 - $1,110
+  1x Kitchen: $750 - $900
+  2x Small Bathroom: $850 - $1,020
+---------------------------------------------
+  TOTAL ESTIMATE: $4,750 - $5,700
+
+PLEASE NOTE: THIS IS ONLY AN ESTIMATE and not a formal quote.
+Pricing may vary based on project conditions, surface prep requirements,
+and material selection. A member of our team will contact you to schedule
+a free in-home estimate and provide a formal written quote.
+
+WHY CHOOSE SGB CUSTOM PAINTING?
+- 25+ Years of Experience in Chico and Northern California
+- Licensed, Insured and EPA Lead Safe Certified
+- PDCA Accredited - Professional Painting Standards
+- No-Surprise Estimates and Transparent Pricing
+- Premium Paints from Sherwin-Williams, Benjamin Moore and Dunn-Edwards
+
+Call Us: 530-924-4109
+Visit: www.sgbpainting.com
+
+------------------------------------------------------------
+SGB Custom Painting | Chico, CA
+Estimate calculator built by Peterson SEO
+www.petersonseoconsulting.com</pre>
+    </div>
+  </div>
+
+  <!-- SCOTT PLAIN TEXT EMAIL -->
+  <div class="email-frame" id="tab-scott-text">
+    <div class="email-label">Lead Notification Email (Scott) &mdash; Plain Text Version (shown when HTML is disabled)</div>
+    <div class="email-meta">
+      <strong>From:</strong> SGB Custom Painting &lt;noreply@sgbpainting.com&gt;<br/>
+      <strong>To:</strong> scott@sgbpainting.com<br/>
+      <strong>CC:</strong> marketing@petersonseoconsulting.com<br/>
+      <strong>Subject:</strong> New Painting Lead: Jane Smith - Interior Painting ($4,750-$5,700)
+    </div>
+    <div style="border:1px solid #d0dce8;border-top:none;background:#ffffff;padding:24px 28px;">
+      <pre style="font-family:'Courier New',Courier,monospace;font-size:13px;line-height:1.7;color:#222;white-space:pre-wrap;margin:0;">NEW PAINTING ESTIMATE LEAD
+SGB Custom Painting - Cost Calculator
+Action Required: Follow up to schedule a free in-home estimate
+============================================================
+
+CONTACT INFORMATION
+-------------------
+Name:    Jane Smith
+Phone:   (530) 555-0100
+Email:   jane.smith@example.com
+Address: 456 Elm Street, Chico, CA 95928
+
+PROJECT DETAILS
+---------------
+Project Type: Interior Painting
+Paint Tier:   Better (SW Emerald / BM Regal Select)
+Rooms:        2x Standard Bedroom, 1x Master Bedroom, 1x Living Room,
+              1x Kitchen, 2x Small Bathroom
+Prep Add-ons: None
+
+ESTIMATE SHOWN TO CUSTOMER
+--------------------------
+  2x Standard Bedroom: $1,350 - $1,620
+  1x Master Bedroom: $875 - $1,050
+  1x Living Room: $925 - $1,110
+  1x Kitchen: $750 - $900
+  2x Small Bathroom: $850 - $1,020
+---------------------------------------------
+  TOTAL ESTIMATE: $4,750 - $5,700
+
+CUSTOMER NOTES: Looking to get this done before summer.
+Flexible on timing. Would like to discuss color options.
+
+------------------------------------------------------------
+Lead generated via the SGB Custom Painting Cost Calculator.
+Built by Peterson SEO - www.petersonseoconsulting.com</pre>
     </div>
   </div>
 

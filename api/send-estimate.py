@@ -3,8 +3,11 @@ SGB Custom Painting - Estimate Email Backend
 Vercel Serverless Function
 Uses Resend to send:
   1. Lead notification to scott@sgbpainting.com (CC marketing)
-  2. Confirmation email to the customer
+  2. Confirmation email to the customer (HTML + plain text)
 Also logs lead to Google Sheets.
+
+TEST MODE: If the request body contains "testMode": true,
+emails and Sheets logging are skipped entirely.
 """
 
 import os
@@ -90,10 +93,19 @@ def fmt_project_type(t):
     return {"interior": "Interior Painting", "exterior": "Exterior Painting", "cabinet": "Cabinet Painting"}.get(t, t.title())
 
 def fmt_tier(t):
-    return {"good": "Good (Sherwin-Williams SuperPaint/Duration)", "better": "Better (SW Emerald / BM Regal Select)", "best": "Best (BM Aura / Dunn-Edwards Evershield)"}.get(t, t.title())
+    return {
+        "good": "Good (Sherwin-Williams SuperPaint / Duration)",
+        "better": "Better (SW Emerald / BM Regal Select)",
+        "best": "Best (BM Aura / Dunn-Edwards Evershield)"
+    }.get(t, t.title())
 
 def fmt_size(s):
-    return {"small": "Small Home (under 1,200 sq ft)", "medium": "Medium Home (1,200-1,800 sq ft)", "large": "Large Home (1,800-2,500 sq ft)", "xlarge": "Extra Large Home (2,500+ sq ft)"}.get(s, s)
+    return {
+        "small": "Small Home (under 1,200 sq ft)",
+        "medium": "Medium Home (1,200-1,800 sq ft)",
+        "large": "Large Home (1,800-2,500 sq ft)",
+        "xlarge": "Extra Large Home (2,500+ sq ft)"
+    }.get(s, s)
 
 def build_rooms_text(data):
     room_labels = {
@@ -121,9 +133,36 @@ def build_breakdown_html(items):
         </tr>"""
     return rows
 
+def build_breakdown_text(items, low_total, high_total):
+    lines = []
+    for item in items:
+        lines.append(f"  {item['name']}: {fmt_currency(item['low'])} - {fmt_currency(item['high'])}")
+    lines.append("-" * 45)
+    lines.append(f"  TOTAL ESTIMATE: {fmt_currency(low_total)} - {fmt_currency(high_total)}")
+    return "\n".join(lines)
 
-# ===== SCOTT LEAD EMAIL =====
-def build_scott_email(data):
+def build_addons_text(data):
+    addon_labels = {
+        "wallpaper": "Wallpaper Removal",
+        "popcorn": "Popcorn Ceiling Removal",
+        "repairs-minor": "Minor Drywall Repairs",
+        "repairs-moderate": "Moderate Drywall Repairs",
+        "powerwash": "Power Washing",
+        "ext-repairs": "Exterior Wood / Stucco Repairs",
+        "deck": "Deck / Patio Painting",
+        "trim-accent": "Trim / Accent Color Upgrade",
+        "face-frames": "Cabinet Face Frames",
+        "hardware": "Hardware Removal and Reinstall"
+    }
+    selected = []
+    for key, label in addon_labels.items():
+        if data.get("addons", {}).get(key):
+            selected.append(label)
+    return ", ".join(selected) if selected else "None"
+
+
+# ===== SCOTT LEAD EMAIL (HTML) =====
+def build_scott_email_html(data):
     breakdown_rows = build_breakdown_html(data.get("breakdown", []))
     rooms_html = ""
     if data.get("projectType") == "interior":
@@ -140,6 +179,8 @@ def build_scott_email(data):
             if qty > 0:
                 rooms_html += f"<li>{qty}x {label}</li>"
 
+    addons_text = build_addons_text(data)
+
     return f"""<!DOCTYPE html>
 <html>
 <head><meta charset="UTF-8"/></head>
@@ -152,7 +193,7 @@ def build_scott_email(data):
         <p style="color:rgba(255,255,255,0.75);font-size:13px;margin:6px 0 0;">SGB Custom Painting - Cost Calculator</p>
       </td></tr>
       <tr><td style="background:#D91D23;padding:12px 28px;">
-        <p style="color:#ffffff;font-size:14px;font-weight:600;margin:0;">Action Required: New lead submitted - follow up within 24 hours</p>
+        <p style="color:#ffffff;font-size:14px;font-weight:600;margin:0;">Action Required: New lead submitted - follow up to schedule a free in-home estimate</p>
       </td></tr>
       <tr><td style="padding:24px 28px 0;">
         <h2 style="color:#052D5C;font-size:16px;margin:0 0 14px;border-bottom:2px solid #052D5C;padding-bottom:8px;">Contact Information</h2>
@@ -171,6 +212,7 @@ def build_scott_email(data):
           {f'<tr><td style="padding:6px 0;font-size:14px;color:#5a6a7e;">Home Size</td><td style="padding:6px 0;font-size:14px;color:#1a1a2e;">{fmt_size(data.get("homeSize",""))}</td></tr>' if data.get("homeSize") else ""}
           {f'<tr><td style="padding:6px 0;font-size:14px;color:#5a6a7e;">Cabinet Doors</td><td style="padding:6px 0;font-size:14px;color:#1a1a2e;">{data.get("cabDoors",0)}</td></tr>' if data.get("projectType")=="cabinet" else ""}
           {f'<tr><td style="padding:6px 0;font-size:14px;color:#5a6a7e;">Drawer Faces</td><td style="padding:6px 0;font-size:14px;color:#1a1a2e;">{data.get("cabDrawers",0)}</td></tr>' if data.get("projectType")=="cabinet" else ""}
+          <tr><td style="padding:6px 0;font-size:14px;color:#5a6a7e;">Prep Add-ons</td><td style="padding:6px 0;font-size:14px;color:#1a1a2e;">{addons_text}</td></tr>
         </table>
         {f'<p style="font-size:13px;color:#5a6a7e;margin:10px 0 0;">Rooms selected:</p><ul style="font-size:13px;color:#1a1a2e;margin:4px 0 0;padding-left:18px;">{rooms_html}</ul>' if rooms_html else ""}
       </td></tr>
@@ -200,8 +242,51 @@ def build_scott_email(data):
 </body></html>"""
 
 
-# ===== CUSTOMER CONFIRMATION EMAIL =====
-def build_customer_email(data):
+# ===== SCOTT LEAD EMAIL (PLAIN TEXT) =====
+def build_scott_email_text(data):
+    breakdown = build_breakdown_text(
+        data.get("breakdown", []),
+        data.get("estimateLow", 0),
+        data.get("estimateHigh", 0)
+    )
+    rooms = build_rooms_text(data)
+    addons = build_addons_text(data)
+    return f"""NEW PAINTING ESTIMATE LEAD
+SGB Custom Painting - Cost Calculator
+Action Required: Follow up to schedule a free in-home estimate
+============================================================
+
+CONTACT INFORMATION
+-------------------
+Name:    {data.get('name', 'N/A')}
+Phone:   {data.get('phone', 'N/A')}
+Email:   {data.get('email', 'N/A')}
+Address: {data.get('address', 'Not provided')}
+
+PROJECT DETAILS
+---------------
+Project Type: {fmt_project_type(data.get('projectType', ''))}
+Paint Tier:   {fmt_tier(data.get('paintTier', ''))}
+{f"Home Size:    {fmt_size(data.get('homeSize', ''))}" if data.get('homeSize') else ""}
+{f"Rooms:        {rooms}" if data.get('projectType') == 'interior' else ""}
+{f"Cabinet Doors: {data.get('cabDoors', 0)}" if data.get('projectType') == 'cabinet' else ""}
+{f"Drawer Faces:  {data.get('cabDrawers', 0)}" if data.get('projectType') == 'cabinet' else ""}
+Prep Add-ons: {addons}
+
+ESTIMATE SHOWN TO CUSTOMER
+--------------------------
+{breakdown}
+
+{f"CUSTOMER NOTES: {data.get('notes', '')}" if data.get('notes') else ""}
+
+------------------------------------------------------------
+Lead generated via the SGB Custom Painting Cost Calculator.
+Built by Peterson SEO - www.petersonseoconsulting.com
+"""
+
+
+# ===== CUSTOMER CONFIRMATION EMAIL (HTML) =====
+def build_customer_email_html(data):
     breakdown_rows = build_breakdown_html(data.get("breakdown", []))
     return f"""<!DOCTYPE html>
 <html>
@@ -217,7 +302,7 @@ def build_customer_email(data):
       <tr><td style="padding:26px 28px 0;">
         <p style="font-size:15px;color:#1a1a2e;margin:0 0 12px;">Hi {data.get('name','there')},</p>
         <p style="font-size:14px;color:#333;line-height:1.6;margin:0 0 12px;">Thank you for using the SGB Custom Painting cost estimator! Based on the details you provided, here is your personalized estimate range for your <strong>{fmt_project_type(data.get('projectType',''))}</strong> project.</p>
-        <p style="font-size:14px;color:#333;line-height:1.6;margin:0;">A member of our team will be reaching out to you shortly to discuss your project in more detail and provide you with an accurate, no-surprise written quote.</p>
+        <p style="font-size:14px;color:#333;line-height:1.6;margin:0;">A member of our team will be reaching out to you shortly to schedule a <strong>free in-home estimate</strong>. Because every project is unique, we always visit in person to give you an accurate, no-surprise written quote.</p>
       </td></tr>
       <tr><td style="padding:20px 28px 0;">
         <table width="100%" cellpadding="0" cellspacing="0" style="background:linear-gradient(135deg,#052D5C,#0a4a8c);border-radius:10px;overflow:hidden;">
@@ -247,7 +332,7 @@ def build_customer_email(data):
       <tr><td style="padding:16px 28px 0;">
         <table width="100%" cellpadding="0" cellspacing="0" style="background:#FFF8E1;border:1px solid #FFE082;border-radius:8px;">
           <tr><td style="padding:14px 16px;">
-            <p style="font-size:13px;color:#5D4037;margin:0;line-height:1.6;"><strong>Please note: THIS IS ONLY AN ESTIMATE and not a formal quote.</strong> Pricing may vary based on project conditions, surface prep requirements, and material selection. Contact SGB Custom Painting for a formal, no-obligation quote.</p>
+            <p style="font-size:13px;color:#5D4037;margin:0;line-height:1.6;"><strong>Please note: THIS IS ONLY AN ESTIMATE and not a formal quote.</strong> Pricing may vary based on project conditions, surface prep requirements, and material selection. A member of our team will contact you to schedule a free in-home estimate and provide a formal written quote.</p>
           </td></tr>
         </table>
       </td></tr>
@@ -276,6 +361,58 @@ def build_customer_email(data):
 </body></html>"""
 
 
+# ===== CUSTOMER CONFIRMATION EMAIL (PLAIN TEXT) =====
+def build_customer_email_text(data):
+    breakdown = build_breakdown_text(
+        data.get("breakdown", []),
+        data.get("estimateLow", 0),
+        data.get("estimateHigh", 0)
+    )
+    return f"""Your Painting Estimate is Ready!
+SGB Custom Painting | Chico, CA | 530-924-4109
+============================================================
+
+Hi {data.get('name', 'there')},
+
+Thank you for using the SGB Custom Painting cost estimator! Based on
+the details you provided, here is your personalized estimate range for
+your {fmt_project_type(data.get('projectType', ''))} project.
+
+A member of our team will be reaching out to you shortly to schedule a
+free in-home estimate. Because every project is unique, we always visit
+in person to give you an accurate, no-surprise written quote.
+
+YOUR ESTIMATED PROJECT RANGE
+-----------------------------
+{fmt_currency(data.get('estimateLow', 0))} - {fmt_currency(data.get('estimateHigh', 0))}
+(Based on current Northern California market rates)
+
+ESTIMATE BREAKDOWN
+------------------
+{breakdown}
+
+PLEASE NOTE: THIS IS ONLY AN ESTIMATE and not a formal quote.
+Pricing may vary based on project conditions, surface prep requirements,
+and material selection. A member of our team will contact you to schedule
+a free in-home estimate and provide a formal written quote.
+
+WHY CHOOSE SGB CUSTOM PAINTING?
+- 25+ Years of Experience in Chico and Northern California
+- Licensed, Insured and EPA Lead Safe Certified
+- PDCA Accredited - Professional Painting Standards
+- No-Surprise Estimates and Transparent Pricing
+- Premium Paints from Sherwin-Williams, Benjamin Moore and Dunn-Edwards
+
+Call Us: 530-924-4109
+Visit: www.sgbpainting.com
+
+------------------------------------------------------------
+SGB Custom Painting | Chico, CA
+Estimate calculator built by Peterson SEO
+www.petersonseoconsulting.com
+"""
+
+
 # ===== VERCEL HANDLER =====
 class handler(BaseHTTPRequestHandler):
 
@@ -291,6 +428,15 @@ class handler(BaseHTTPRequestHandler):
         body = self.rfile.read(content_length)
         data = json.loads(body)
 
+        # ===== TEST MODE: skip all emails and Sheets logging =====
+        if data.get("testMode", False):
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            self.wfile.write(json.dumps({"ok": True, "testMode": True, "message": "Test mode - no emails sent"}).encode())
+            return
+
         errors = []
 
         # 1. Send lead notification to Scott (CC marketing)
@@ -300,12 +446,13 @@ class handler(BaseHTTPRequestHandler):
                 "to": [SCOTT_EMAIL],
                 "cc": [MARKETING_EMAIL],
                 "subject": f"New Painting Lead: {data.get('name','Unknown')} - {fmt_project_type(data.get('projectType',''))} ({fmt_currency(data.get('estimateLow',0))}-{fmt_currency(data.get('estimateHigh',0))})",
-                "html": build_scott_email(data)
+                "html": build_scott_email_html(data),
+                "text": build_scott_email_text(data)
             })
         except Exception as e:
             errors.append(f"Scott email failed: {str(e)}")
 
-        # 2. Send confirmation to customer
+        # 2. Send confirmation to customer (HTML + plain text)
         try:
             customer_email = data.get("email")
             if customer_email:
@@ -313,7 +460,8 @@ class handler(BaseHTTPRequestHandler):
                     "from": FROM_EMAIL,
                     "to": [customer_email],
                     "subject": f"Your SGB Custom Painting Estimate: {fmt_currency(data.get('estimateLow',0))} - {fmt_currency(data.get('estimateHigh',0))}",
-                    "html": build_customer_email(data)
+                    "html": build_customer_email_html(data),
+                    "text": build_customer_email_text(data)
                 })
         except Exception as e:
             errors.append(f"Customer email failed: {str(e)}")

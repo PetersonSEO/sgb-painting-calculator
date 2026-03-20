@@ -595,6 +595,11 @@
 </head>
 <body>
 
+<!-- DEMO MODE BANNER - remove this block when going live -->
+<div id="demo-banner" style="background:#FF6F00;color:#fff;text-align:center;padding:10px 16px;font-family:'Segoe UI',Arial,sans-serif;font-size:13px;font-weight:600;letter-spacing:0.3px;">
+  DEMO MODE &mdash; No emails will be sent during testing. Remove this banner before going live.
+</div>
+
 <div class="calc-wrapper">
 
   <!-- HEADER -->
@@ -1370,6 +1375,9 @@ async function submitEstimate() {
 
   const { items, low, high } = calcEstimate();
 
+  // TEST MODE: set to false when going live on the website
+  const TEST_MODE = true;
+
   const leadData = {
     name:    document.getElementById('lead-name').value.trim(),
     phone:   document.getElementById('lead-phone').value.trim(),
@@ -1384,7 +1392,8 @@ async function submitEstimate() {
     cabDrawers:  state.cabDrawers,
     estimateLow:  low,
     estimateHigh: high,
-    breakdown:    items
+    breakdown:    items,
+    testMode:     TEST_MODE
   };
 
   try {

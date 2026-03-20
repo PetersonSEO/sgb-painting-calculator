@@ -1388,7 +1388,7 @@ async function submitEstimate() {
   };
 
   try {
-    const response = await fetch('BACKEND_URL_PLACEHOLDER/send-estimate', {
+    const response = await fetch('https://sgb-painting-calculator.vercel.app/api/send-estimate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(leadData)

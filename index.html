@@ -1144,6 +1144,10 @@ function goNext() {
   if (state.currentStep === 5) { restartCalc(); return; }
   if (!validateStep(state.currentStep)) return;
   if (state.currentStep === 4) {
+    // Disable immediately (synchronously) to prevent any double-click before async guard kicks in
+    const btn = document.getElementById('btn-next');
+    if (btn.disabled) return;
+    btn.disabled = true;
     submitEstimate();
     return;
   }
@@ -1449,7 +1453,10 @@ async function submitEstimate() {
   showSection('section-5');
   updateProgress();
   btn.disabled = false;
+  btn.innerHTML = 'Start Over';
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Reset guard so Start Over allows a fresh submission
+  _submitting = false;
 }
 
 // ===== RESTART =====

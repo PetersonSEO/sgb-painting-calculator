@@ -8,12 +8,14 @@
   <style>
     /* ===== RESET & BASE ===== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 16px; }
+    html { font-size: 16px; overflow-x: hidden; }
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
       background: #f0f4f8;
       color: #1a1a2e;
       min-height: 100vh;
+      overflow-x: hidden;
+      width: 100%;
     }
 
     /* ===== BRAND COLORS ===== */
@@ -60,11 +62,12 @@
     /* ===== WRAPPER ===== */
     .calc-wrapper {
       max-width: 820px;
+      width: 100%;
       margin: 0 auto;
       background: var(--white);
       border-radius: 14px;
       box-shadow: var(--shadow);
-      overflow: hidden;
+      overflow-x: hidden;
     }
 
     /* ===== PROGRESS BAR ===== */

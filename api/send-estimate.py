@@ -21,7 +21,7 @@ from googleapiclient.discovery import build
 
 # ===== CONFIG =====
 RESEND_API_KEY   = os.environ.get("RESEND_API_KEY", "")
-FROM_EMAIL       = "SGB Custom Painting <noreply@sgbpainting.com>"
+FROM_EMAIL       = "SGB Custom Painting <estimates@sgbpainting.com>"
 SCOTT_EMAIL      = "scott@sgbpainting.com"
 MARKETING_EMAIL  = "marketing@petersonseoconsulting.com"
 ZAPIER_WEBHOOK   = os.environ.get("ZAPIER_WEBHOOK_URL", "")

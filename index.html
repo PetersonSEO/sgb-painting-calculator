@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SGB Custom Painting - Estimate Calculator</title>
+  <title>Painting Cost Estimator | SGB Custom Painting</title>
+  <meta name="description" content="Get an instant painting cost estimate for interior, exterior, or cabinet painting in Chico, CA. Free tool from SGB Custom Painting." />
   <style>
     /* ===== RESET & BASE ===== */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -807,38 +808,24 @@
         </div>
       </label>
       <label class="addon-check">
-        <input type="checkbox" id="addon-ext-repairs-minor" />
+        <input type="checkbox" id="addon-ext-repairs" />
         <div class="addon-check-label">
-          <strong>Wood Rot Repair (Minor)</strong>
-          <span>Small sections of siding or trim</span>
-        </div>
-      </label>
-      <label class="addon-check">
-        <input type="checkbox" id="addon-ext-repairs-moderate" />
-        <div class="addon-check-label">
-          <strong>Wood Rot Repair (Moderate)</strong>
-          <span>Larger board replacement</span>
+          <strong>Wood Repairs / Rot Replacement</strong>
+          <span>Fascia, siding boards, trim boards</span>
         </div>
       </label>
       <label class="addon-check">
         <input type="checkbox" id="addon-deck" />
         <div class="addon-check-label">
-          <strong>Deck / Wood Patio Painting or Staining</strong>
-          <span>Per standard deck up to 400 sq ft</span>
+          <strong>Deck or Fence Painting</strong>
+          <span>Stain or paint exterior deck and fencing</span>
         </div>
       </label>
       <label class="addon-check">
-        <input type="checkbox" id="addon-railing" />
+        <input type="checkbox" id="addon-trim-accent" />
         <div class="addon-check-label">
-          <strong>Stair or Patio Railing</strong>
-          <span>Per railing section</span>
-        </div>
-      </label>
-      <label class="addon-check">
-        <input type="checkbox" id="addon-fireplace" />
-        <div class="addon-check-label">
-          <strong>Exterior Brick Fireplace</strong>
-          <span>Exterior brick fireplace painting</span>
+          <strong>Accent Trim Color</strong>
+          <span>Different color for trim vs. body of home</span>
         </div>
       </label>
     </div>
@@ -883,21 +870,7 @@
         <input type="checkbox" id="addon-hardware" />
         <div class="addon-check-label">
           <strong>Hardware Removal and Reinstall</strong>
-          <span>Remove hinges/pulls, reinstall after painting</span>
-        </div>
-      </label>
-      <label class="addon-check">
-        <input type="checkbox" id="addon-grain" />
-        <div class="addon-check-label">
-          <strong>Grain Fill (Oak Cabinets)</strong>
-          <span>Fill wood grain for a smooth factory finish</span>
-        </div>
-      </label>
-      <label class="addon-check">
-        <input type="checkbox" id="addon-glaze" />
-        <div class="addon-check-label">
-          <strong>Glaze / Specialty Finish</strong>
-          <span>Antiquing, glaze, or two-tone finish (per door)</span>
+          <span>We remove and reinstall all knobs and pulls</span>
         </div>
       </label>
     </div>
@@ -1029,17 +1002,17 @@ const state = {
 
 // ===== PRICING TABLES =====
 const roomPrices = {
-  'small-bed':   { good: 450,  better: 625,  best: 700  },
-  'std-bed':     { good: 550,  better: 825,  best: 850  },
-  'master-bed':  { good: 700,  better: 925,  best: 1100 },
-  'living':      { good: 750,  better: 1050, best: 1150 },
-  'dining':      { good: 550,  better: 725,  best: 850  },
-  'kitchen':     { good: 600,  better: 825,  best: 950  },
-  'bath-sm':     { good: 350,  better: 450,  best: 550  },
+  'small-bed':   { good: 450,  better: 550,  best: 700  },
+  'std-bed':     { good: 550,  better: 675,  best: 850  },
+  'master-bed':  { good: 700,  better: 875,  best: 1100 },
+  'living':      { good: 750,  better: 925,  best: 1150 },
+  'dining':      { good: 550,  better: 675,  best: 850  },
+  'kitchen':     { good: 600,  better: 750,  best: 950  },
+  'bath-sm':     { good: 350,  better: 425,  best: 550  },
   'bath-master': { good: 500,  better: 625,  best: 775  },
-  'hallway':     { good: 350,  better: 525,  best: 550  },
-  'office':      { good: 550,  better: 775,  best: 850  },
-  'stair':       { good: 450,  better: 650,  best: 700  }
+  'hallway':     { good: 350,  better: 425,  best: 550  },
+  'office':      { good: 550,  better: 675,  best: 850  },
+  'stair':       { good: 450,  better: 550,  best: 700  }
 };
 
 const roomLabels = {
@@ -1052,39 +1025,30 @@ const roomLabels = {
 };
 
 const exteriorPrices = {
-  small:  { good: 1800, better: 3200,  best: 4200  },
-  medium: { good: 4800, better: 6000,  best: 6800  },
-  large:  { good: 5800, better: 8400,  best: 9500  },
-  xlarge: { good: 7200, better: 11500, best: 14000 }
+  small:  { good: 2800, better: 3500,  best: 4400  },
+  medium: { good: 3800, better: 4750,  best: 5900  },
+  large:  { good: 5200, better: 6500,  best: 8100  },
+  xlarge: { good: 7000, better: 8750,  best: 10900 }
 };
 
 const cabPrices = {
-  door:   { good: 85,  better: 100, best: 145 },
-  drawer: { good: 55,  better: 80,  best: 90  },
-  frames: { good: 35,  better: 40,  best: 60  }  // per linear ft
+  door:   { good: 75,  better: 95,  best: 125 },
+  drawer: { good: 45,  better: 60,  best: 80  },
+  frames: { good: 200, better: 250, best: 325 }
 };
 
-// Interior add-on prices (flat, not per-room)
+// Interior add-on prices (per room count)
 const addonPrices = {
-  'repairs-minor':   125,
-  'repairs-moderate': 275
+  'repairs-minor':  { perRoom: 150 },
+  'repairs-moderate':{ perRoom: 350 }
 };
 
 // Exterior add-on flat prices (prep work is the same cost regardless of paint tier)
 const extAddonPrices = {
-  powerwash:              325,
-  'ext-repairs-minor':    300,
-  'ext-repairs-moderate': 800,
-  deck:                   1500,
-  railing:                225,
-  fireplace:              575
-};
-
-// Cabinet add-on flat prices
-const cabAddonPrices = {
-  hardware: 500,
-  grain:    1200,
-  glaze:    30   // per door
+  powerwash:    275,
+  'ext-repairs':700,
+  deck:         1000,
+  'trim-accent':325
 };
 
 // ===== STEP NAVIGATION =====
@@ -1290,12 +1254,12 @@ function calcEstimate() {
     // Add-ons
     const totalRooms = Object.values(state.rooms).reduce((a, b) => a + b, 0);
     if (document.getElementById('addon-repairs-minor').checked) {
-      const p = addonPrices['repairs-minor'];
+      const p = addonPrices['repairs-minor'].perRoom * totalRooms;
       items.push({ name: 'Minor Drywall Repairs', low: p, high: Math.round(p * 1.3) });
       low += p; high += Math.round(p * 1.3);
     }
     if (document.getElementById('addon-repairs-moderate').checked) {
-      const p = addonPrices['repairs-moderate'];
+      const p = addonPrices['repairs-moderate'].perRoom * totalRooms;
       items.push({ name: 'Moderate Drywall Repairs', low: p, high: Math.round(p * 1.3) });
       low += p; high += Math.round(p * 1.3);
     }
@@ -1312,30 +1276,20 @@ function calcEstimate() {
       items.push({ name: 'Power Washing', low: p, high: Math.round(p * 1.15) });
       low += p; high += Math.round(p * 1.15);
     }
-    if (document.getElementById('addon-ext-repairs-minor').checked) {
-      const p = extAddonPrices['ext-repairs-minor'];
-      items.push({ name: 'Wood Rot Repair (Minor)', low: p, high: Math.round(p * 1.3) });
-      low += p; high += Math.round(p * 1.3);
-    }
-    if (document.getElementById('addon-ext-repairs-moderate').checked) {
-      const p = extAddonPrices['ext-repairs-moderate'];
-      items.push({ name: 'Wood Rot Repair (Moderate)', low: p, high: Math.round(p * 1.3) });
-      low += p; high += Math.round(p * 1.3);
+    if (document.getElementById('addon-ext-repairs').checked) {
+      const p = extAddonPrices['ext-repairs'];
+      items.push({ name: 'Wood Repairs / Rot Replacement', low: p, high: Math.round(p * 1.4) });
+      low += p; high += Math.round(p * 1.4);
     }
     if (document.getElementById('addon-deck').checked) {
       const p = extAddonPrices.deck;
-      items.push({ name: 'Deck / Wood Patio Painting', low: p, high: Math.round(p * 1.2) });
-      low += p; high += Math.round(p * 1.2);
+      items.push({ name: 'Deck / Fence Painting', low: p, high: Math.round(p * 1.3) });
+      low += p; high += Math.round(p * 1.3);
     }
-    if (document.getElementById('addon-railing').checked) {
-      const p = extAddonPrices.railing;
-      items.push({ name: 'Stair / Patio Railing', low: p, high: Math.round(p * 1.2) });
-      low += p; high += Math.round(p * 1.2);
-    }
-    if (document.getElementById('addon-fireplace').checked) {
-      const p = extAddonPrices.fireplace;
-      items.push({ name: 'Exterior Brick Fireplace', low: p, high: Math.round(p * 1.2) });
-      low += p; high += Math.round(p * 1.2);
+    if (document.getElementById('addon-trim-accent').checked) {
+      const p = extAddonPrices['trim-accent'];
+      items.push({ name: 'Accent Trim Color', low: p, high: Math.round(p * 1.15) });
+      low += p; high += Math.round(p * 1.15);
     }
   }
 
@@ -1356,20 +1310,8 @@ function calcEstimate() {
       low += p; high += Math.round(p * 1.2);
     }
     if (document.getElementById('addon-hardware').checked) {
-      const p = cabAddonPrices.hardware;
-      items.push({ name: 'Hardware Removal and Reinstall', low: p, high: Math.round(p * 1.2) });
-      low += p; high += Math.round(p * 1.2);
-    }
-    if (document.getElementById('addon-grain').checked) {
-      const p = cabAddonPrices.grain;
-      items.push({ name: 'Grain Fill (Oak Cabinets)', low: p, high: Math.round(p * 1.2) });
-      low += p; high += Math.round(p * 1.2);
-    }
-    if (document.getElementById('addon-glaze').checked) {
-      const totalDoors = state.cabDoors + state.cabDrawers;
-      const p = cabAddonPrices.glaze * Math.max(totalDoors, 1);
-      items.push({ name: 'Glaze / Specialty Finish', low: p, high: Math.round(p * 1.2) });
-      low += p; high += Math.round(p * 1.2);
+      items.push({ name: 'Hardware Removal and Reinstall', low: 50, high: 100 });
+      low += 50; high += 100;
     }
   }
 

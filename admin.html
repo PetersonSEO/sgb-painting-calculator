@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SGB Calculator Admin Panel</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a1a2e; }
+    :root { --navy: #052D5C; --blue: #2D71AE; --red: #D91D23; }
+
+    /* LOGIN */
+    #login-screen {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    }
+    .login-box {
+      background: #fff; border-radius: 14px; padding: 36px 32px; width: 340px;
+      box-shadow: 0 4px 24px rgba(5,45,92,0.12); text-align: center;
+    }
+    .login-box h2 { color: var(--navy); margin-bottom: 6px; }
+    .login-box p { color: #5a6a7e; font-size: 0.85rem; margin-bottom: 22px; }
+    .login-box input {
+      width: 100%; padding: 11px 14px; border: 1.5px solid #d0dce8; border-radius: 7px;
+      font-size: 0.95rem; margin-bottom: 14px; font-family: inherit;
+    }
+    .login-box input:focus { outline: none; border-color: var(--blue); }
+    .login-btn {
+      width: 100%; padding: 12px; background: var(--navy); color: #fff;
+      border: none; border-radius: 7px; font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+    }
+    .login-btn:hover { background: #073d7a; }
+    .login-error { color: var(--red); font-size: 0.82rem; margin-top: 8px; display: none; }
+
+    /* ADMIN PANEL */
+    #admin-panel { display: none; }
+    .admin-header {
+      background: var(--navy); padding: 16px 28px; display: flex;
+      align-items: center; justify-content: space-between;
+    }
+    .admin-header h1 { color: #fff; font-size: 1.1rem; }
+    .admin-header span { color: rgba(255,255,255,0.7); font-size: 0.82rem; }
+    .logout-btn {
+      background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3);
+      padding: 6px 14px; border-radius: 5px; cursor: pointer; font-size: 0.82rem; font-family: inherit;
+    }
+
+    .admin-body { max-width: 900px; margin: 0 auto; padding: 24px 20px; }
+
+    .admin-tabs { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+    .admin-tab {
+      padding: 9px 18px; border-radius: 7px; cursor: pointer; font-weight: 600;
+      font-size: 0.85rem; border: 2px solid var(--navy); background: #fff; color: var(--navy);
+      transition: all 0.15s;
+    }
+    .admin-tab.active { background: var(--navy); color: #fff; }
+
+    .admin-section { display: none; }
+    .admin-section.active { display: block; }
+
+    .section-card {
+      background: #fff; border-radius: 12px; padding: 20px;
+      margin-bottom: 18px; box-shadow: 0 2px 10px rgba(5,45,92,0.07);
+    }
+    .section-card h3 {
+      color: var(--navy); font-size: 1rem; margin-bottom: 14px;
+      padding-bottom: 8px; border-bottom: 2px solid var(--navy);
+    }
+
+    .price-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; align-items: center; }
+    .price-grid-header { font-size: 0.78rem; font-weight: 700; color: #5a6a7e; padding: 4px 0; }
+    .price-row { display: contents; }
+    .price-row label { font-size: 0.88rem; color: var(--navy); font-weight: 600; padding: 6px 0; }
+    .price-input {
+      border: 1.5px solid #d0dce8; border-radius: 6px; padding: 7px 10px;
+      font-size: 0.88rem; width: 100%; font-family: inherit; text-align: right;
+    }
+    .price-input:focus { outline: none; border-color: var(--blue); }
+    .price-input.good:focus { border-color: #2e7d32; }
+    .price-input.better:focus { border-color: #1565c0; }
+    .price-input.best:focus { border-color: #880e4f; }
+
+    .save-btn {
+      background: var(--navy); color: #fff; border: none; border-radius: 7px;
+      padding: 11px 24px; font-size: 0.9rem; font-weight: 700; cursor: pointer;
+      font-family: inherit; margin-top: 16px; transition: background 0.2s;
+    }
+    .save-btn:hover { background: #073d7a; }
+
+    .copy-btn {
+      background: var(--blue); color: #fff; border: none; border-radius: 7px;
+      padding: 11px 24px; font-size: 0.9rem; font-weight: 700; cursor: pointer;
+      font-family: inherit; margin-top: 16px; margin-left: 10px; transition: background 0.2s;
+    }
+    .copy-btn:hover { background: #1a5a9a; }
+
+    .success-banner {
+      background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 8px;
+      padding: 12px 16px; font-size: 0.85rem; color: #1b5e20; margin-top: 12px;
+      display: none;
+    }
+
+    .output-box {
+      background: #1a1a2e; color: #a8d8a8; border-radius: 8px; padding: 16px;
+      font-family: monospace; font-size: 0.8rem; margin-top: 14px;
+      max-height: 300px; overflow-y: auto; white-space: pre-wrap; display: none;
+    }
+
+    .note-box {
+      background: #EEF4FB; border: 1px solid #b3d0ee; border-radius: 8px;
+      padding: 12px 14px; font-size: 0.83rem; color: var(--navy); margin-bottom: 16px;
+    }
+
+    @media (max-width: 600px) {
+      .price-grid { grid-template-columns: 1fr 1fr; }
+      .price-grid-header:nth-child(1) { grid-column: 1 / -1; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <h2>Admin Panel</h2>
+    <p>SGB Custom Painting Calculator</p>
+    <input type="password" id="pw-input" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')login()"/>
+    <button class="login-btn" onclick="login()">Sign In</button>
+    <div class="login-error" id="login-error">Incorrect password. Please try again.</div>
+    <p style="font-size:0.75rem;color:#aaa;margin-top:16px;">Default password: sgbadmin2024</p>
+  </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="admin-panel">
+  <div class="admin-header">
+    <div>
+      <h1>SGB Calculator Admin Panel</h1>
+      <span>Update pricing without touching code</span>
+    </div>
+    <button class="logout-btn" onclick="logout()">Sign Out</button>
+  </div>
+
+  <div class="admin-body">
+    <div class="note-box">
+      After updating prices, click <strong>Generate Code</strong> to get the updated JavaScript block, then paste it into <code>index.html</code> replacing the existing pricing section. Or share the generated code with your developer.
+    </div>
+
+    <div class="admin-tabs">
+      <div class="admin-tab active" onclick="showAdminTab('interior')">Interior Rooms</div>
+      <div class="admin-tab" onclick="showAdminTab('exterior')">Exterior</div>
+      <div class="admin-tab" onclick="showAdminTab('cabinet')">Cabinets</div>
+      <div class="admin-tab" onclick="showAdminTab('addons')">Add-Ons</div>
+      <div class="admin-tab" onclick="showAdminTab('generate')">Generate Code</div>
+    </div>
+
+    <!-- INTERIOR -->
+    <div class="admin-section active" id="tab-interior">
+      <div class="section-card">
+        <h3>Interior Room Prices (per room, includes walls, ceiling, trim, doors)</h3>
+        <div class="price-grid">
+          <div class="price-grid-header">Room Type</div>
+          <div class="price-grid-header" style="text-align:right;color:#2e7d32;">Good ($)</div>
+          <div class="price-grid-header" style="text-align:right;color:#1565c0;">Better ($)</div>
+          <div class="price-grid-header" style="text-align:right;color:#880e4f;">Best ($)</div>
+          <div class="price-row">
+            <label>Small Bedroom</label>
+            <input class="price-input good" id="r-small-bed-good" type="number" value="450"/>
+            <input class="price-input better" id="r-small-bed-better" type="number" value="550"/>
+            <input class="price-input best" id="r-small-bed-best" type="number" value="700"/>
+          </div>
+          <div class="price-row">
+            <label>Standard Bedroom</label>
+            <input class="price-input good" id="r-std-bed-good" type="number" value="550"/>
+            <input class="price-input better" id="r-std-bed-better" type="number" value="675"/>
+            <input class="price-input best" id="r-std-bed-best" type="number" value="850"/>
+          </div>
+          <div class="price-row">
+            <label>Master Bedroom</label>
+            <input class="price-input good" id="r-master-bed-good" type="number" value="700"/>
+            <input class="price-input better" id="r-master-bed-better" type="number" value="875"/>
+            <input class="price-input best" id="r-master-bed-best" type="number" value="1100"/>
+          </div>
+          <div class="price-row">
+            <label>Living Room</label>
+            <input class="price-input good" id="r-living-good" type="number" value="750"/>
+            <input class="price-input better" id="r-living-better" type="number" value="925"/>
+            <input class="price-input best" id="r-living-best" type="number" value="1150"/>
+          </div>
+          <div class="price-row">
+            <label>Dining Room</label>
+            <input class="price-input good" id="r-dining-good" type="number" value="550"/>
+            <input class="price-input better" id="r-dining-better" type="number" value="675"/>
+            <input class="price-input best" id="r-dining-best" type="number" value="850"/>
+          </div>
+          <div class="price-row">
+            <label>Kitchen</label>
+            <input class="price-input good" id="r-kitchen-good" type="number" value="600"/>
+            <input class="price-input better" id="r-kitchen-better" type="number" value="750"/>
+            <input class="price-input best" id="r-kitchen-best" type="number" value="950"/>
+          </div>
+          <div class="price-row">
+            <label>Small Bathroom</label>
+            <input class="price-input good" id="r-bath-sm-good" type="number" value="350"/>
+            <input class="price-input better" id="r-bath-sm-better" type="number" value="425"/>
+            <input class="price-input best" id="r-bath-sm-best" type="number" value="550"/>
+          </div>
+          <div class="price-row">
+            <label>Master Bathroom</label>
+            <input class="price-input good" id="r-bath-master-good" type="number" value="500"/>
+            <input class="price-input better" id="r-bath-master-better" type="number" value="625"/>
+            <input class="price-input best" id="r-bath-master-best" type="number" value="775"/>
+          </div>
+          <div class="price-row">
+            <label>Hallway / Entry</label>
+            <input class="price-input good" id="r-hallway-good" type="number" value="350"/>
+            <input class="price-input better" id="r-hallway-better" type="number" value="425"/>
+            <input class="price-input best" id="r-hallway-best" type="number" value="550"/>
+          </div>
+          <div class="price-row">
+            <label>Office / Den</label>
+            <input class="price-input good" id="r-office-good" type="number" value="550"/>
+            <input class="price-input better" id="r-office-better" type="number" value="675"/>
+            <input class="price-input best" id="r-office-best" type="number" value="850"/>
+          </div>
+          <div class="price-row">
+            <label>Stairwell / Landing</label>
+            <input class="price-input good" id="r-stair-good" type="number" value="450"/>
+            <input class="price-input better" id="r-stair-better" type="number" value="550"/>
+            <input class="price-input best" id="r-stair-best" type="number" value="700"/>
+          </div>
+        </div>
+        <button class="save-btn" onclick="showSuccess('interior-saved')">Save Interior Prices</button>
+        <div class="success-banner" id="interior-saved">Prices saved! Go to Generate Code tab to export the updated code.</div>
+      </div>
+    </div>
+
+    <!-- EXTERIOR -->
+    <div class="admin-section" id="tab-exterior">
+      <div class="section-card">
+        <h3>Exterior Painting — Base Price by Home Size</h3>
+        <div class="price-grid">
+          <div class="price-grid-header">Home Size</div>
+          <div class="price-grid-header" style="text-align:right;color:#2e7d32;">Good ($)</div>
+          <div class="price-grid-header" style="text-align:right;color:#1565c0;">Better ($)</div>
+          <div class="price-grid-header" style="text-align:right;color:#880e4f;">Best ($)</div>
+          <div class="price-row">
+            <label>Small (under 1,200 sqft)</label>
+            <input class="price-input good" id="e-small-good" type="number" value="2800"/>
+            <input class="price-input better" id="e-small-better" type="number" value="3500"/>
+            <input class="price-input best" id="e-small-best" type="number" value="4400"/>
+          </div>
+          <div class="price-row">
+            <label>Medium (1,200-1,800 sqft)</label>
+            <input class="price-input good" id="e-medium-good" type="number" value="3800"/>
+            <input class="price-input better" id="e-medium-better" type="number" value="4750"/>
+            <input class="price-input best" id="e-medium-best" type="number" value="5900"/>
+          </div>
+          <div class="price-row">
+            <label>Large (1,800-2,500 sqft)</label>
+            <input class="price-input good" id="e-large-good" type="number" value="5200"/>
+            <input class="price-input better" id="e-large-better" type="number" value="6500"/>
+            <input class="price-input best" id="e-large-best" type="number" value="8100"/>
+          </div>
+          <div class="price-row">
+            <label>Extra Large (2,500+ sqft)</label>
+            <input class="price-input good" id="e-xlarge-good" type="number" value="7000"/>
+            <input class="price-input better" id="e-xlarge-better" type="number" value="8750"/>
+            <input class="price-input best" id="e-xlarge-best" type="number" value="10900"/>
+          </div>
+        </div>
+        <h3 style="margin-top:20px;">Exterior Add-On Prices (flat per project)</h3>
+        <div class="price-grid">
+          <div class="price-grid-header">Add-On</div>
+          <div class="price-grid-header" style="text-align:right;color:#2e7d32;">Good ($)</div>
+          <div class="price-grid-header" style="text-align:right;color:#1565c0;">Better ($)</div>
+          <div class="price-grid-header" style="text-align:right;color:#880e4f;">Best ($)</div>
+          <div class="price-row">
+            <label>Power Washing</label>
+            <input class="price-input good" id="ea-powerwash-good" type="number" value="300"/>
+            <input class="price-input better" id="ea-powerwash-better" type="number" value="350"/>
+            <input class="price-input best" id="ea-powerwash-best" type="number" value="400"/>
+          </div>
+          <div class="price-row">
+            <label>Wood Repairs / Rot</label>
+            <input class="price-input good" id="ea-repairs-good" type="number" value="600"/>
+            <input class="price-input better" id="ea-repairs-better" type="number" value="750"/>
+            <input class="price-input best" id="ea-repairs-best" type="number" value="950"/>
+          </div>
+          <div class="price-row">
+            <label>Deck / Fence Painting</label>
+            <input class="price-input good" id="ea-deck-good" type="number" value="900"/>
+            <input class="price-input better" id="ea-deck-better" type="number" value="1100"/>
+            <input class="price-input best" id="ea-deck-best" type="number" value="1400"/>
+          </div>
+          <div class="price-row">
+            <label>Accent Trim Color</label>
+            <input class="price-input good" id="ea-trim-good" type="number" value="300"/>
+            <input class="price-input better" id="ea-trim-better" type="number" value="350"/>
+            <input class="price-input best" id="ea-trim-best" type="number" value="400"/>
+          </div>
+        </div>
+        <button class="save-btn" onclick="showSuccess('exterior-saved')">Save Exterior Prices</button>
+        <div class="success-banner" id="exterior-saved">Prices saved! Go to Generate Code tab to export the updated code.</div>
+      </div>
+    </div>
+
+    <!-- CABINET -->
+    <div class="admin-section" id="tab-cabinet">
+      <div class="section-card">
+        <h3>Cabinet Painting Prices</h3>
+        <div class="price-grid">
+          <div class="price-grid-header">Item</div>
+          <div class="price-grid-header" style="text-align:right;color:#2e7d32;">Good ($)</div>
+          <div class="price-grid-header" style="text-align:right;color:#1565c0;">Better ($)</div>
+          <div class="price-grid-header" style="text-align:right;color:#880e4f;">Best ($)</div>
+          <div class="price-row">
+            <label>Per Cabinet Door</label>
+            <input class="price-input good" id="c-door-good" type="number" value="75"/>
+            <input class="price-input better" id="c-door-better" type="number" value="95"/>
+            <input class="price-input best" id="c-door-best" type="number" value="125"/>
+          </div>
+          <div class="price-row">
+            <label>Per Drawer Face</label>
+            <input class="price-input good" id="c-drawer-good" type="number" value="45"/>
+            <input class="price-input better" id="c-drawer-better" type="number" value="60"/>
+            <input class="price-input best" id="c-drawer-best" type="number" value="80"/>
+          </div>
+          <div class="price-row">
+            <label>Face Frames (flat)</label>
+            <input class="price-input good" id="c-frames-good" type="number" value="200"/>
+            <input class="price-input better" id="c-frames-better" type="number" value="250"/>
+            <input class="price-input best" id="c-frames-best" type="number" value="325"/>
+          </div>
+          <div class="price-row">
+            <label>Hardware Removal / Reinstall (flat)</label>
+            <input class="price-input good" id="c-hardware-good" type="number" value="50"/>
+            <input class="price-input better" id="c-hardware-better" type="number" value="50"/>
+            <input class="price-input best" id="c-hardware-best" type="number" value="100"/>
+          </div>
+        </div>
+        <button class="save-btn" onclick="showSuccess('cabinet-saved')">Save Cabinet Prices</button>
+        <div class="success-banner" id="cabinet-saved">Prices saved! Go to Generate Code tab to export the updated code.</div>
+      </div>
+    </div>
+
+    <!-- ADD-ONS -->
+    <div class="admin-section" id="tab-addons">
+      <div class="section-card">
+        <h3>Interior Add-On Prices (per room)</h3>
+        <div class="price-grid" style="grid-template-columns: 2fr 1fr 1fr 1fr;">
+          <div class="price-grid-header">Add-On</div>
+          <div class="price-grid-header" style="text-align:right;">Per Room ($)</div>
+          <div class="price-grid-header" style="text-align:right;">High Multiplier</div>
+          <div class="price-grid-header" style="text-align:right;">Example 4 Rooms</div>
+          <div class="price-row">
+            <label>Wallpaper Removal</label>
+            <input class="price-input" id="a-wallpaper" type="number" value="450" oninput="updateExample('wallpaper')"/>
+            <input class="price-input" value="x 1.30" readonly style="background:#f5f7fa;color:#5a6a7e;"/>
+            <input class="price-input" id="ex-wallpaper" readonly style="background:#f5f7fa;color:#052D5C;font-weight:700;"/>
+          </div>
+          <div class="price-row">
+            <label>Popcorn Ceiling Removal</label>
+            <input class="price-input" id="a-popcorn" type="number" value="400" oninput="updateExample('popcorn')"/>
+            <input class="price-input" value="x 1.30" readonly style="background:#f5f7fa;color:#5a6a7e;"/>
+            <input class="price-input" id="ex-popcorn" readonly style="background:#f5f7fa;color:#052D5C;font-weight:700;"/>
+          </div>
+          <div class="price-row">
+            <label>Minor Drywall Repairs</label>
+            <input class="price-input" id="a-repairs-minor" type="number" value="150" oninput="updateExample('repairs-minor')"/>
+            <input class="price-input" value="x 1.30" readonly style="background:#f5f7fa;color:#5a6a7e;"/>
+            <input class="price-input" id="ex-repairs-minor" readonly style="background:#f5f7fa;color:#052D5C;font-weight:700;"/>
+          </div>
+          <div class="price-row">
+            <label>Moderate Drywall Repairs</label>
+            <input class="price-input" id="a-repairs-moderate" type="number" value="350" oninput="updateExample('repairs-moderate')"/>
+            <input class="price-input" value="x 1.30" readonly style="background:#f5f7fa;color:#5a6a7e;"/>
+            <input class="price-input" id="ex-repairs-moderate" readonly style="background:#f5f7fa;color:#052D5C;font-weight:700;"/>
+          </div>
+        </div>
+        <button class="save-btn" onclick="showSuccess('addon-saved')">Save Add-On Prices</button>
+        <div class="success-banner" id="addon-saved">Prices saved! Go to Generate Code tab to export the updated code.</div>
+      </div>
+    </div>
+
+    <!-- GENERATE CODE -->
+    <div class="admin-section" id="tab-generate">
+      <div class="section-card">
+        <h3>Generate Updated Pricing Code</h3>
+        <p style="font-size:0.88rem;color:#5a6a7e;margin-bottom:16px;">Click the button below to generate the updated JavaScript pricing block based on your current values. Copy and paste this into <code>index.html</code> to replace the existing pricing section.</p>
+        <button class="save-btn" onclick="generateCode()">Generate Code</button>
+        <button class="copy-btn" onclick="copyCode()">Copy to Clipboard</button>
+        <div class="success-banner" id="copy-success" style="display:none;">Copied to clipboard!</div>
+        <div class="output-box" id="code-output"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const ADMIN_PASSWORD = 'sgbadmin2024';
+
+function login() {
+  const pw = document.getElementById('pw-input').value;
+  if (pw === ADMIN_PASSWORD) {
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('admin-panel').style.display = 'block';
+    initExamples();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+  }
+}
+
+function logout() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('admin-panel').style.display = 'none';
+  document.getElementById('pw-input').value = '';
+}
+
+function showAdminTab(tab) {
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  event.target.classList.add('active');
+}
+
+function showSuccess(id) {
+  const el = document.getElementById(id);
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 3000);
+}
+
+function initExamples() {
+  ['wallpaper','popcorn','repairs-minor','repairs-moderate'].forEach(k => updateExample(k));
+}
+
+function updateExample(key) {
+  const val = parseFloat(document.getElementById('a-' + key).value) || 0;
+  const ex = document.getElementById('ex-' + key);
+  if (ex) ex.value = '$' + (val * 4).toLocaleString() + ' - $' + Math.round(val * 4 * 1.3).toLocaleString();
+}
+
+function g(id) { return parseInt(document.getElementById(id).value) || 0; }
+
+function generateCode() {
+  const code = `// ===== PRICING TABLES =====
+// Last updated via Admin Panel
+const roomPrices = {
+  'small-bed':   { good: ${g('r-small-bed-good')},  better: ${g('r-small-bed-better')},  best: ${g('r-small-bed-best')}  },
+  'std-bed':     { good: ${g('r-std-bed-good')},  better: ${g('r-std-bed-better')},  best: ${g('r-std-bed-best')}  },
+  'master-bed':  { good: ${g('r-master-bed-good')},  better: ${g('r-master-bed-better')},  best: ${g('r-master-bed-best')} },
+  'living':      { good: ${g('r-living-good')},  better: ${g('r-living-better')},  best: ${g('r-living-best')} },
+  'dining':      { good: ${g('r-dining-good')},  better: ${g('r-dining-better')},  best: ${g('r-dining-best')}  },
+  'kitchen':     { good: ${g('r-kitchen-good')},  better: ${g('r-kitchen-better')},  best: ${g('r-kitchen-best')}  },
+  'bath-sm':     { good: ${g('r-bath-sm-good')},  better: ${g('r-bath-sm-better')},  best: ${g('r-bath-sm-best')}  },
+  'bath-master': { good: ${g('r-bath-master-good')},  better: ${g('r-bath-master-better')},  best: ${g('r-bath-master-best')}  },
+  'hallway':     { good: ${g('r-hallway-good')},  better: ${g('r-hallway-better')},  best: ${g('r-hallway-best')}  },
+  'office':      { good: ${g('r-office-good')},  better: ${g('r-office-better')},  best: ${g('r-office-best')}  },
+  'stair':       { good: ${g('r-stair-good')},  better: ${g('r-stair-better')},  best: ${g('r-stair-best')}  }
+};
+
+const exteriorPrices = {
+  small:  { good: ${g('e-small-good')}, better: ${g('e-small-better')},  best: ${g('e-small-best')}  },
+  medium: { good: ${g('e-medium-good')}, better: ${g('e-medium-better')},  best: ${g('e-medium-best')}  },
+  large:  { good: ${g('e-large-good')}, better: ${g('e-large-better')},  best: ${g('e-large-best')}  },
+  xlarge: { good: ${g('e-xlarge-good')}, better: ${g('e-xlarge-better')},  best: ${g('e-xlarge-best')} }
+};
+
+const cabPrices = {
+  door:   { good: ${g('c-door-good')},  better: ${g('c-door-better')},  best: ${g('c-door-best')} },
+  drawer: { good: ${g('c-drawer-good')},  better: ${g('c-drawer-better')},  best: ${g('c-drawer-best')}  },
+  frames: { good: ${g('c-frames-good')}, better: ${g('c-frames-better')}, best: ${g('c-frames-best')} }
+};
+
+const addonPrices = {
+  wallpaper:          { perRoom: ${g('a-wallpaper')} },
+  popcorn:            { perRoom: ${g('a-popcorn')} },
+  'repairs-minor':    { perRoom: ${g('a-repairs-minor')} },
+  'repairs-moderate': { perRoom: ${g('a-repairs-moderate')} }
+};
+
+const extAddonPrices = {
+  powerwash:     { good: ${g('ea-powerwash-good')}, better: ${g('ea-powerwash-better')}, best: ${g('ea-powerwash-best')} },
+  'ext-repairs': { good: ${g('ea-repairs-good')}, better: ${g('ea-repairs-better')}, best: ${g('ea-repairs-best')} },
+  deck:          { good: ${g('ea-deck-good')}, better: ${g('ea-deck-better')}, best: ${g('ea-deck-best')} },
+  'trim-accent': { good: ${g('ea-trim-good')}, better: ${g('ea-trim-better')}, best: ${g('ea-trim-best')} }
+};`;
+
+  const output = document.getElementById('code-output');
+  output.textContent = code;
+  output.style.display = 'block';
+}
+
+function copyCode() {
+  const code = document.getElementById('code-output').textContent;
+  if (!code) { generateCode(); }
+  navigator.clipboard.writeText(document.getElementById('code-output').textContent).then(() => {
+    const el = document.getElementById('copy-success');
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 2500);
+  });
+}
+</script>
+</body>
+</html>

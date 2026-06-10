@@ -1400,7 +1400,10 @@ function renderEstimate() {
 }
 
 // ===== EMAIL SUBMISSION =====
+let _submitting = false;
 async function submitEstimate() {
+  if (_submitting) return;
+  _submitting = true;
   const btn = document.getElementById('btn-next');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>Sending...';

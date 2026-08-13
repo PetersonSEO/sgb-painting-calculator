@@ -234,7 +234,7 @@ def build_scott_email_html(data):
       </td></tr>
       {f'<tr><td style="padding:16px 28px 0;"><h2 style="color:#052D5C;font-size:16px;margin:0 0 10px;">Customer Notes</h2><p style="font-size:14px;color:#333;background:#f5f7fa;padding:12px;border-radius:8px;border-left:3px solid #2D71AE;">{data.get("notes","")}</p></td></tr>' if data.get("notes") else ""}
       <tr><td style="padding:20px 28px 24px;">
-        <p style="font-size:12px;color:#999;margin:0;text-align:center;">Lead generated via the SGB Custom Painting Cost Calculator. Built by <a href="https://www.petersonseoconsulting.com" style="color:#2D71AE;">Peterson SEO</a>.</p>
+        <p style="font-size:12px;color:#999;margin:0;text-align:center;">Lead generated via the SGB Custom Painting Cost Calculator.</p>
       </td></tr>
     </table>
   </td></tr>
@@ -281,7 +281,6 @@ ESTIMATE SHOWN TO CUSTOMER
 
 ------------------------------------------------------------
 Lead generated via the SGB Custom Painting Cost Calculator.
-Built by Peterson SEO - www.petersonseoconsulting.com
 """
 
 
@@ -353,7 +352,7 @@ def build_customer_email_html(data):
       </td></tr>
       <tr><td style="padding:22px 28px 24px;border-top:1px solid #e8edf2;margin-top:20px;">
         <p style="font-size:12px;color:#999;margin:0;text-align:center;line-height:1.6;">SGB Custom Painting | Chico, CA | <a href="tel:5309244109" style="color:#2D71AE;">530-924-4109</a> | <a href="https://www.sgbpainting.com" style="color:#2D71AE;">sgbpainting.com</a><br/>
-        Estimate calculator built by <a href="https://www.petersonseoconsulting.com" style="color:#2D71AE;">Peterson SEO</a></p>
+        Your requested estimate is a ballpark range. SGB will provide a formal written quote after an in-home visit.</p>
       </td></tr>
     </table>
   </td></tr>
@@ -408,8 +407,7 @@ Visit: www.sgbpainting.com
 
 ------------------------------------------------------------
 SGB Custom Painting | Chico, CA
-Estimate calculator built by Peterson SEO
-www.petersonseoconsulting.com
+Your requested estimate is a ballpark range. SGB will provide a formal written quote after an in-home visit.
 """
 
 
@@ -445,7 +443,7 @@ class handler(BaseHTTPRequestHandler):
                 "from": FROM_EMAIL,
                 "to": [SCOTT_EMAIL],
                 "cc": [MARKETING_EMAIL],
-                "subject": f"New Painting Lead: {data.get('name','Unknown')} - {fmt_project_type(data.get('projectType',''))} ({fmt_currency(data.get('estimateLow',0))}-{fmt_currency(data.get('estimateHigh',0))})",
+                "subject": f"New estimate request from {data.get('name','a website visitor')} | SGB Custom Painting",
                 "html": build_scott_email_html(data),
                 "text": build_scott_email_text(data)
             })
@@ -459,7 +457,7 @@ class handler(BaseHTTPRequestHandler):
                 resend.Emails.send({
                     "from": FROM_EMAIL,
                     "to": [customer_email],
-                    "subject": f"Your SGB Custom Painting Estimate: {fmt_currency(data.get('estimateLow',0))} - {fmt_currency(data.get('estimateHigh',0))}",
+                    "subject": "Your SGB Custom Painting estimate",
                     "html": build_customer_email_html(data),
                     "text": build_customer_email_text(data)
                 })
